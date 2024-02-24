@@ -8,25 +8,29 @@
 	<link rel="stylesheet" href="style.css">
 </head>
 <body>
-	<h1>Scrolly comic maker</h1>
-	<input id="image-upload" type="file" />
-	<div id="image-collection">
-  </div>
-	<button id="addImage">Add Image</button>
-	<br>
-	<iframe id="preview" srcdoc=""></iframe>
-	<p>Cue count: <i id="cueCount">0</i></p>
-	<div id="settings">
-		<h2>Edit properties</h2>
-		<img src="" id="currentImgPreview" />
-		<p id="currentId"></p>
-		<label for="start cue">Start cue:</label>
-	<input type="number" id="startCue" name="Start cue" min="0" max="15" />
-
-	<label for="end Cue">End cue:</label>
-	<input type="number" id="endCue" name="Start cue" min="0" max="15" />
+	<div id="panel">
+		<h1>Scrolly comic maker</h1>
+		<input id="image-upload" type="file" />
+		<div id="image-collection">
+		</div>
+		<div id="settings">
+			<h2>Image properties</h2>
+			<img src="" id="currentImgPreview" />
+			<p id="currentId"></p>
+			<label for="start cue">Start frame:</label>
+		<input type="number" id="startCue" name="Start cue" min="0" max="15" />
+			<br>
+		<label for="end Cue">End frame:</label>
+		<input type="number" id="endCue" name="Start cue" min="0" max="15" />
+		</div>
+		<button id="addImage">Add Image</button>
+	</div>
+	<div id="previewContainer">
+		<iframe id="preview" srcdoc=""></iframe>
+		<p>Cue count: <i id="cueCount">0</i></p>
 
 	</div>
+
 </body>
 <script src="script.js"></script>
 </html>
