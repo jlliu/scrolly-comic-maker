@@ -1,10 +1,11 @@
 let addImageButton = document.querySelector("#addImage");
-
 let previewIframe = document.querySelector("#preview");
 
 var parser = new DOMParser();
 
-let addedObjects = [];
+// let addedObjects = [];
+
+let numObjects = 0;
 
 let cueCount = document.querySelector("#cueCount");
 
@@ -19,15 +20,36 @@ let currentIdInput = document.querySelector("#currentId");
 
 let currentScrollPos = 0;
 
+let selectedLibraryImage = null;
+let currentlyDraggingLibraryImage = false;
+
 window.onmessage = function (e) {
   // inside the parent
   if (e.data.message == "reposition img") {
     console.log("reposition image received");
-    addedObjects[e.data.id].position.x = e.data.x;
-    addedObjects[e.data.id].position.y = e.data.y;
+    // addedObjects[e.data.id].position.x = e.data.x;
+    // addedObjects[e.data.id].position.y = e.data.y;
     let thisImg = htmlDoc.querySelector(`img[data-id="${e.data.id}"`);
-    thisImg.style.left = e.data.x;
-    thisImg.style.top = e.data.y;
+    thisImg.style.left = `${e.data.x}px`;
+    thisImg.style.top = `${e.data.y}px`;
+    // let thisEl = addedObjects[e.data.id];
+    // thisEl.x = e.data.x;
+    // thisEl.y = e.data.y;
+    // previewIframe.srcdoc = htmlDoc.documentElement.outerHTML;
+  }
+
+  if (e.data.message == "update html") {
+    console.log("updateHTML");
+    // addedObjects[e.data.id].position.x = e.data.x;
+    // addedObjects[e.data.id].position.y = e.data.y;
+    // let thisImg = htmlDoc.querySelector(`img[data-id="${e.data.id}"`);
+    // thisImg.style.left = `${e.data.x}px`;
+    // thisImg.style.top = `${e.data.y}px`;
+
+    htmlDoc = parser.parseFromString(e.data.html, "text/html");
+    // let thisEl = addedObjects[e.data.id];
+    // thisEl.x = e.data.x;
+    // thisEl.y = e.data.y;
     // previewIframe.srcdoc = htmlDoc.documentElement.outerHTML;
   }
 
@@ -40,228 +62,31 @@ window.onmessage = function (e) {
 
   // inside the parent
   if (e.data.message == "selected img") {
+    console.log("selected image received");
     let thisId = e.data.id;
-    let thisEl = addedObjects[thisId];
-    startCueInput.innerHTML = thisEl.startFrame;
-    endCueInput.innerHTML = thisEl.endFrame;
+    let thisEl = htmlDoc.querySelector(`img[data-id="${e.data.id}"`);
+    currentElement = thisEl;
+    console.log(thisEl);
+    //update values in UI
+    let dataCues = JSON.parse(thisEl.dataset.cues);
+    console.log(dataCues[0]);
+    startCueInput.value = dataCues[0];
+    endCueInput.value = dataCues[dataCues.length - 1];
     currentIdInput.innerHTML = thisId;
   }
 };
 
 let iframeScript = ``;
 
-let originalSrcdoc = `
-<html>
-  <head>
-    <style>
-      body {
-        margin:0px;
-      }
-      #sceneContainer {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 800px;
-        height: 600px;
-      }
-      #scrollContainer{
-        height:10000px;
-      }
-
-      img {
-        position:absolute;
-        -webkit-user-select: none;
-        -khtml-user-select: none;
-        -moz-user-select: none;
-        -o-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-
-        -webkit-user-drag: none;
-        -khtml-user-drag: none;
-        -moz-user-drag: none;
-        -o-user-drag: none;
-        -ms-user-drag: none;
-        user-drag: none;
-
-        opacity:0;
-        display: none;
-        transition: opacity .2s ease-in, background .2s;
-        position:absolute;
-        top:0px;
-        left:0px;
-
-      }
-
-      img.visible{
-        opacity:1;
-        transition:  opacity .4s ease-in 0s, background .2s;
-        pointer-events:all;
-      }
-
-    </style>
-
-  </head>
-  <body>
-    <div id="sceneContainer"></div>
-    <div id="scrollContainer"></div>
-  </body>
-  <script>
-      let currentlyDragging = false;
-      let draggingEl = null;
-      let images = document.querySelectorAll("img");
-      let clickedPos = {x: 0, y: 0};
-      images.forEach(function(image){
-        image.addEventListener("mousedown",function(e){
-          console.log("you mousedown on me");
-          clickedPos = {x:e.clientX-e.target.offsetLeft, y: e.clientY-e.target.offsetTop };
-          currentlyDragging = true;
-          draggingEl = image;
-        })
-
-        image.addEventListener("click",function(e){
-          console.log("you click on me");
-          window.top.postMessage({
-            message: "selected img",
-            id: e.target.dataset.id
-          })
-
-        });
-
-      });
-      document.addEventListener('mouseup', function(){
-        currentlyDragging = false;
-
-          window.top.postMessage({
-            message: "reposition img",
-            id: draggingEl.dataset.id,
-            x: draggingEl.offsetLeft,
-            y: draggingEl.offsetTop
-            }); //inside the iframe
-
-          draggingEl = null;
-      });
-      document.addEventListener('mousemove',function(e){
-
-        if (currentlyDragging){
-           draggingEl.style.left = (e.clientX - clickedPos.x) +"px" ;
-           draggingEl.style.top = (e.clientY - clickedPos.y)+"px";
-        }
-
-      })
-
-
-      // Keys: the cue number
-      // Values: an array of scene Els
-      let cuesToEls = {};
-
-      //Initialize list
-      for (let i = 0; i < 16; i++) {
-        cuesToEls[i] = [];
-      }
-
-
-      images.forEach(function (sceneEl) {
-        console.log(sceneEl);
-        let cues = JSON.parse(sceneEl.dataset.cues);
-        cues.forEach(function (cue) {
-          cuesToEls[cue].push(sceneEl);
-        });
-      });
-
-      console.log(cuesToEls);
-
-
-
-    let currentCueIndex = 0;
-
-      let scrollPos = 0;
-
-      let interval = 600;
-
-      let currentSceneEls = [];
-      let prevSceneEls = [];
-
-
-      function changeScene(scrollPos, initialize) {
-        let cueChanged = currentCueIndex !== Math.floor(scrollPos / interval);
-        currentCueIndex = Math.floor(scrollPos / interval);
-        if (cueChanged){
-          console.log(currentCueIndex);
-          window.top.postMessage({
-            message: "cue change",
-            cueCount: currentCueIndex,
-            scrollPos: scrollPos
-            }); //inside the iframe
-
-            prevSceneEls = currentSceneEls;
-            currentSceneEls = cuesToEls[currentCueIndex];
-
-            prevSceneEls.forEach(function (sceneEl) {
-              //if this prev scene El is not in this current one, remove it
-              if (currentSceneEls.indexOf(sceneEl) == -1) {
-                sceneEl.classList.remove("visible");
-                window.setTimeout(function () {
-                  sceneEl.style.display = "none";
-                }, 300);
-              }
-            });
-
-            //Show all the current ones
-            currentSceneEls.forEach(function (sceneEl) {
-              sceneEl.style.display = "block";
-              window.setTimeout(function () {
-                sceneEl.classList.add("visible");
-              }, 5);
-            });
-        }
-        if (initialize){
-          currentCueIndex = Math.floor(scrollPos / interval);
-          prevSceneEls = currentSceneEls;
-          currentSceneEls = cuesToEls[currentCueIndex];
-
-          prevSceneEls.forEach(function (sceneEl) {
-            //if this prev scene El is not in this current one, remove it
-            if (currentSceneEls.indexOf(sceneEl) == -1) {
-              sceneEl.classList.remove("visible");
-              window.setTimeout(function () {
-                sceneEl.style.display = "none";
-              }, 300);
-            }
-          });
-
-          //Show all the current ones
-          currentSceneEls.forEach(function (sceneEl) {
-            sceneEl.style.display = "block";
-            window.setTimeout(function () {
-              sceneEl.classList.add("visible");
-            }, 5);
-          });
-        }
-
-      }
-
-
-      changeScene(window.scrollY, true);
-      window.onscroll = function (e) {
-        scrollPos = window.scrollY;
-        // console.log(scrollPos);
-        changeScene(window.scrollY);
-      };
-
-
-  </script>
-</html>
-
-`;
+//htmlDoc is where we update our current source of truth for what the current doc should be
+// it should be up to date with change we make within the iframe
 let htmlDoc = parser.parseFromString(originalSrcdoc, "text/html");
 
 previewIframe.srcdoc = originalSrcdoc;
 
-generateDataCueString = function (startFrame, endFrame) {
+let generateDataCueString = function (startFrame, endFrame) {
   let cuesString = "[";
-  for (var i = 0; i < endFrame - startFrame; i++) {
+  for (var i = 0; i < endFrame - startFrame + 1; i++) {
     console.log(cuesString);
     if (i != 0) {
       cuesString += ",";
@@ -272,10 +97,12 @@ generateDataCueString = function (startFrame, endFrame) {
   return cuesString;
 };
 
-addImageButton.addEventListener("click", function () {
+//TODO: create a wrapper for image that contains the containing div and the selection points
+let addImage = function (imageSrc, xPos, yPos) {
   let img = new Image();
-  img.src = "img/testImg.png";
-  let id = addedObjects.length;
+  img.src = imageSrc;
+  let id = numObjects;
+  numObjects++;
   img.setAttribute("data-id", id);
 
   //Create the default cues
@@ -283,15 +110,14 @@ addImageButton.addEventListener("click", function () {
   let startFrame = currentCue;
   let endFrame = currentCue + 2;
 
-  // let dataCues = `data-cues="${cuesString}"`;
-
-  console.log(startFrame, endFrame);
   img.setAttribute("data-cues", generateDataCueString(startFrame, endFrame));
+  img.style.left = `${xPos}px`;
+  img.style.top = `${yPos}px`;
 
   startCueInput.value = startFrame;
   endCueInput.value = endFrame;
-  currentElement = img;
-  currentImgPreview.src = currentElement.src;
+
+  currentImgPreview.src = img.src;
   currentIdInput.innerHTML = id;
 
   //Add image to scene container
@@ -299,41 +125,41 @@ addImageButton.addEventListener("click", function () {
   sceneContainer.appendChild(img);
 
   //Change preview iframe frame to the html
-  previewIframe.srcdoc = htmlDoc.documentElement.outerHTML;
 
-  //When we add a new image, show it by default starting on this cue
-  // but allow adjusting it to multiple cues
-  addedObjects.push({
-    id: id,
-    imgSrc: img.src,
-    position: { x: 0, y: 0 },
-    startFrame: currentCue,
-    endFrame: currentCue + 1,
+  Array.from(htmlDoc.querySelectorAll("img")).forEach(function (image) {
+    image.classList.remove("selected");
+    image.classList.remove("display");
+    image.classList.remove("visible");
+    image.classList.remove("dragging");
   });
-});
+
+  previewIframe.srcdoc = htmlDoc.documentElement.outerHTML;
+  //Store this as current element
+  currentElement = img;
+};
 
 let updateCues = function (startFrame, endFrame) {
   if (endFrame >= startFrame) {
     let thisImg = htmlDoc.querySelector(
       `img[data-id="${currentElement.dataset.id}"`
     );
-    console.log(currentElement);
-    console.log(`img[data-id="${currentElement.dataset.id}"]`);
-    console.log(thisImg);
-    console.log(startFrame, endFrame);
     thisImg.setAttribute(
       "data-cues",
       generateDataCueString(startFrame, endFrame)
     );
-    console.log("test");
+
+    Array.from(htmlDoc.querySelectorAll("img")).forEach(function (image) {
+      image.classList.remove("selected");
+      image.classList.remove("display");
+      image.classList.remove("visible");
+      image.classList.remove("dragging");
+    });
     previewIframe.srcdoc = htmlDoc.documentElement.outerHTML;
-    console.log("tes2");
   }
 };
 
 //Detect property change
 startCueInput.addEventListener("change", (e) => {
-  console.log(e.target.value);
   // Need to change data values between the two
   //Double check it's valid
   let startFrame = parseInt(startCueInput.value);
@@ -345,7 +171,6 @@ startCueInput.addEventListener("change", (e) => {
 
 //Detect property change
 endCueInput.addEventListener("change", (e) => {
-  console.log(e.target.value);
   // Need to change data values between the two
   //Double check it's valid
   let startFrame = parseInt(startCueInput.value);
@@ -367,6 +192,8 @@ const img = document.getElementById("img");
 
 const imageCollection = document.querySelector("#image-collection");
 
+let imageLibrary = [];
+
 function getImg(event) {
   const file = event.target.files[0]; // 0 = get the first file
   let url = window.URL.createObjectURL(file);
@@ -374,7 +201,42 @@ function getImg(event) {
   let newImg = new Image();
   newImg.src = url;
   newImg.classList.add("imageLibraryPreview");
+  newImg.addEventListener("mousedown", function (el) {
+    //drag
+    selectedLibraryImage = el;
+    let draggedImage = new Image();
+    draggedImage.src = newImg.src;
+    draggedImage.id = "draggedImage";
+    document.body.appendChild(draggedImage);
+    currentlyDraggingLibraryImage = true;
+  });
   imageCollection.appendChild(newImg);
+
+  imageLibrary.push(newImg);
 }
 
 inputImg.addEventListener("change", getImg);
+
+document.addEventListener("mousemove", function (e) {
+  if (currentlyDraggingLibraryImage) {
+    let draggedImage = document.querySelector("#draggedImage");
+    draggedImage.style.left = `${e.clientX}px`;
+    draggedImage.style.top = `${e.clientY}px`;
+    document.querySelector("#preview").classList.add("inactive");
+  }
+});
+
+document.addEventListener("mouseup", function (e) {
+  if (currentlyDraggingLibraryImage) {
+    let draggedImage = document.querySelector("#draggedImage");
+    let previewIframe = document.querySelector("#preview");
+    let droppedPos = {
+      x: e.clientX - previewIframe.offsetLeft,
+      y: e.clientY - previewIframe.offsetTop,
+    };
+    addImage(draggedImage.src, droppedPos.x, droppedPos.y);
+    draggedImage.remove();
+    currentlyDraggingLibraryImage = false;
+    previewIframe.classList.remove("inactive");
+  }
+});

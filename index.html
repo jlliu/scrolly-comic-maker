@@ -16,21 +16,22 @@
 		<div id="settings">
 			<h2>Image properties</h2>
 			<img src="" id="currentImgPreview" />
-			<p id="currentId"></p>
+			<p>Image: <i id="currentId">0</i></p>
 			<label for="start cue">Start frame:</label>
 		<input type="number" id="startCue" name="Start cue" min="0" max="15" />
 			<br>
 		<label for="end Cue">End frame:</label>
 		<input type="number" id="endCue" name="Start cue" min="0" max="15" />
 		</div>
-		<button id="addImage">Add Image</button>
+		<!-- <button id="addImage">Add Image</button> -->
 	</div>
 	<div id="previewContainer">
 		<iframe id="preview" srcdoc=""></iframe>
-		<p>Cue count: <i id="cueCount">0</i></p>
+		<p>Current frame: <i id="cueCount">0</i></p>
 
 	</div>
 
 </body>
+<script src="srcdoc.js"></script>
 <script src="script.js"></script>
 </html>
