@@ -56,20 +56,17 @@ let originalSrcdoc = `
       }
 
       img.selected {
-        -webkit-box-shadow: 0px 0px 0px 2px rgba(135,183,255,1);
-        -moz-box-shadow: 0px 0px 0px 2px rgba(135,183,255,1);
-        box-shadow: 0px 0px 0px 2px rgba(135,183,255,1);
-        /* margin:-2px;
-        border: 2px solid  rgba(135,183,255,1); */
+        -webkit-box-shadow: 0px 0px 0px 3px rgba(135,183,255,1);
+        -moz-box-shadow: 0px 0px 0px 3px rgba(135,183,255,1);
+        box-shadow: 0px 0px 0px 3px rgba(135,183,255,1);
       }
-      /* img.selected::after{
-       position:absolute;
-       bottom:0px;
-       right:0px;
-      content: url("ui/resize.png");
 
+      img:not(.selected):hover {
+        -webkit-box-shadow: 0px 0px 0px 2px rgba(135,183,255,.5);
+        -moz-box-shadow: 0px 0px 0px 2px rgba(135,183,255,.5);
+        box-shadow: 0px 0px 0px 2px rgba(135,183,255,.5);
+      }
 
-      } */
       img::after{
         content: "after";
       }
@@ -119,13 +116,20 @@ let originalSrcdoc = `
       let clickedPos = {x: 0, y: 0};
 
       let getHtmlString = function(){
-
         return document.querySelector('html').innerHTML;
       }
-      // console.log(getHtmlString());
+
+      let sendUpdatedHtmlMessage = function(){
+        window.top.postMessage({
+            message: "update html",
+            html: getHtmlString()
+        });
+      }
 
 
       let cornerMargin = 20;
+
+
 
       let bottomRightCorner = function(element, pos){
         let dimensions = element.getBoundingClientRect();
@@ -177,18 +181,20 @@ let originalSrcdoc = `
             document.body.classList.add('nesw-resizing');
             thisEl.classList.add('nesw-resizing');
            }
-
-          // else if (topLeftCorner(thisEl,pos)){
-          //   thisEl.classList.add('nwse-resizing');
-          //  }
+           else if (topLeftCorner(thisEl,pos)){
+            document.body.classList.add('nwse-resizing');
+            thisEl.classList.add('nwse-resizing');
+           }
 
            else {
-            document.body.classList.remove('nesw-resizing');
-            document.body.classList.remove('nwse-resizing');
             thisEl.classList.remove('nesw-resizing');
             thisEl.classList.remove('nwse-resizing');
            }
 
+      }
+      let removeResizeCursorsOnBody = function(){
+        document.body.classList.remove('nwse-resizing');
+        document.body.classList.remove('nesw-resizing');
       }
 
       images.forEach(function(image){
@@ -231,7 +237,10 @@ let originalSrcdoc = `
           console.log("you mousedown on me");
           let thisEl =e.target;
 
-          clickedPos = {x:e.clientX-thisEl.getBoundingClientRect().left, y: e.clientY-thisEl.getBoundingClientRect().top };
+          clickedPos = {
+          x:e.clientX-thisEl.getBoundingClientRect().left,
+          y: e.clientY-thisEl.getBoundingClientRect().top
+        };
 
           // make this image selected
           images.forEach(function (sceneEl) {
@@ -248,63 +257,30 @@ let originalSrcdoc = `
           let dimensions = thisEl.getBoundingClientRect();
 
           //Bottom right corner
+          resizeInfo = {
+              corner:"",
+              el: thisEl,
+              originalPos: thisEl.getBoundingClientRect()
+          }
           if (bottomRightCorner(thisEl,clickedPos)) {
             currentlyResizing = true;
-            resizeInfo = {
-              corner:"bottomRight",
-              el: thisEl,
-              ratio: clickedPos.x/thisEl.getBoundingClientRect().width,
-              originalPos: {
-                x: thisEl.getBoundingClientRect().left,
-                y: thisEl.getBoundingClientRect().top
-              }
-            }
+            resizeInfo.corner = "bottomRight";
            } else if (topRightCorner(thisEl,clickedPos)) {
             currentlyResizing = true;
-            resizeInfo = {
-              corner:"topRight",
-              el: thisEl,
-              ratio: clickedPos.x/thisEl.getBoundingClientRect().width,
-              originalPos: {
-                x: thisEl.getBoundingClientRect().left,
-                y: thisEl.getBoundingClientRect().top
-              }
-            }
+            resizeInfo.corner = "topRight";
           }
           else if (bottomLeftCorner(thisEl,clickedPos)) {
             currentlyResizing = true;
-            resizeInfo = {
-              corner:"bottomLeft",
-              el: thisEl,
-              ratio: (thisEl.getBoundingClientRect().width-clickedPos.x)/thisEl.getBoundingClientRect().width,
-              originalPos: {
-                x: thisEl.getBoundingClientRect().left,
-                y: thisEl.getBoundingClientRect().top
-              }
-            }
+            resizeInfo.corner = "bottomLeft";
           }
-          // else if (topRightCorner(thisEl,clickedPos)) {
-          //   currentlyResizing = true;
-          //   resizeInfo = {
-          //     corner:"topRight",
-          //     el: thisEl,
-          //     ratio: clickedPos.x/thisEl.getBoundingClientRect().width
-          //   }
-          // } else if (topLeftCorner(thisEl,clickedPos)) {
-          //   currentlyResizing = true;
-          //   resizeInfo = {
-          //     corner:"topLeft",
-          //     el: thisEl,
-          //     ratio: (thisEl.getBoundingClientRect().width-clickedPos.x)/thisEl.getBoundingClientRect().width
-          //   }
-          // }
+          else if (topLeftCorner(thisEl,clickedPos)) {
+            currentlyResizing = true;
+            resizeInfo.corner = "topLeft";
+          }
           else {
-            console.log("we are currelntly dragging")
             currentlyDragging = true;
             draggingEl = thisEl;
             thisEl.classList.add('dragging');
-
-
            }
         })
 
@@ -331,55 +307,49 @@ let originalSrcdoc = `
         }
         if (currentlyResizing){
           let thisEl = resizeInfo.el;
-          let newWidth;
-          let dy;
-          let dx;
-          let changeRatio;
+          let newWidth; let dy; let dx;
+
+          //clicked ratio tells you where you clicked in relation to the image
+          let clickedRatio = {
+            x: clickedPos.x/resizeInfo.originalPos.width,
+            y: clickedPos.y/resizeInfo.originalPos.height
+          };
           if (resizeInfo.corner == "bottomRight"){
-            if (e.clientX > thisEl.getBoundingClientRect().left){
-              newWidth = (e.clientX - thisEl.getBoundingClientRect().left)/resizeInfo.ratio;
-              // thisEl.style.transformOrigin = "top left";
+            if (e.clientX > resizeInfo.originalPos.left){
+              newWidth = (e.clientX - resizeInfo.originalPos.left)/clickedRatio.x;
             }
           }
           else if (resizeInfo.corner == "topRight"){
-            if (e.clientX > thisEl.getBoundingClientRect().left){
-              newWidth = (e.clientX - thisEl.getBoundingClientRect().left)/resizeInfo.ratio;
-              changeRatio = newWidth / thisEl.naturalWidth;
-              dy = thisEl.naturalHeight * (1-changeRatio);
-              thisEl.style.top = (resizeInfo.originalPos.y + dy)+ "px";
+            if (e.clientX > resizeInfo.originalPos.left){
+              newWidth = (e.clientX - resizeInfo.originalPos.left)/clickedRatio.x;
+              newHeight = (newWidth*thisEl.naturalHeight/thisEl.naturalWidth);
+              dy = newHeight - resizeInfo.originalPos.height;
+              thisEl.style.top = (resizeInfo.originalPos.top-dy)+'px';
             }
           }
           else if (resizeInfo.corner == "bottomLeft"){
-            if (e.clientX < (thisEl.getBoundingClientRect().left+thisEl.getBoundingClientRect().width)){
-              newWidth = (thisEl.getBoundingClientRect().right -  e.clientX)/resizeInfo.ratio ;
-              changeRatio = newWidth / thisEl.naturalWidth;
-              dx = thisEl.naturalWidth * (1-changeRatio);
-              console.log(dx);
-              thisEl.style.left = (resizeInfo.originalPos.x + dx)+ "px";
+            if (e.clientX < (resizeInfo.originalPos.left+resizeInfo.originalPos.width)){
+              newWidth = (resizeInfo.originalPos.right -  e.clientX)/(1-clickedRatio.x);
+              dx = newWidth - resizeInfo.originalPos.width;
+              thisEl.style.left = (resizeInfo.originalPos.left - dx)+ "px";
             }
           }
-
-          // else if (resizeInfo.corner == "bottomLeft"){
-          //   if (e.clientX < (thisEl.getBoundingClientRect().left+thisEl.getBoundingClientRect().width) && e.clientY > thisEl.getBoundingClientRect().top){
-          //     newWidth = (thisEl.getBoundingClientRect().right -  e.clientX)/resizeInfo.ratio ;
-          //     thisEl.style.transformOrigin = "top right";
-          //   }
-          // } else if (resizeInfo.corner == "topRight"){
-          //   if (e.clientX > thisEl.getBoundingClientRect().left && e.clientY < thisEl.getBoundingClientRect().bottom){
-
-          //     newWidth = (e.clientX - thisEl.getBoundingClientRect().left)/resizeInfo.ratio;
-          //     console.log(newWidth);
-          //     thisEl.style.transformOrigin = "bottom left";
-          //   }
-          // }
-          // let ratio = newWidth / thisEl.naturalWidth;
+          else if (resizeInfo.corner == "topLeft"){
+            if (e.clientX < (resizeInfo.originalPos.left+resizeInfo.originalPos.width)){
+              newWidth = (resizeInfo.originalPos.right -  e.clientX)/(1-clickedRatio.x);
+              newHeight = (newWidth*thisEl.naturalHeight/thisEl.naturalWidth);
+              dy = newHeight - resizeInfo.originalPos.height;
+              dx = newWidth - resizeInfo.originalPos.width;
+              thisEl.style.left = (resizeInfo.originalPos.left - dx)+ "px";
+              thisEl.style.top = (resizeInfo.originalPos.top-dy)+'px';
+            }
+          }
           thisEl.style.width = newWidth+"px";
-          // thisEl.style.border =  (2/ratio)+"px solid rgba(135,183,255,1)";
-          // thisEl.style.transform = "scale("+ratio+")";
-          // thisEl.style.transform = "scale("+ratio+")";
         } else {
-          document.body.classList.remove('nwse-resizing');
-          document.body.classList.remove('nesw-resizing');
+
+          if (e.target.tagName != "IMG"){
+            removeResizeCursorsOnBody();
+          }
         }
       })
       document.addEventListener('mouseup',function(e){
@@ -389,16 +359,13 @@ let originalSrcdoc = `
           currentlyDragging = false;
           e.target.classList.remove("dragging");
 
-          window.top.postMessage({
-            message: "update html",
-            html: getHtmlString()
-          }); //inside the iframe
+          sendUpdatedHtmlMessage();
           draggingEl = null;
         }
 
         //Clear selected and resizing if you click outside an image
         if (e.target.tagName != "IMG"){
-          document.body.classList.remove('nwse-resizing');
+          removeResizeCursorsOnBody();
           images.forEach(function (sceneEl) {
             sceneEl.classList.remove('selected');
           });
@@ -410,12 +377,9 @@ let originalSrcdoc = `
             corner: null,
             el: null,
             ratio: null,
-            originalPos: {x:null,y:null}
+            originalPos: {}
           }
-          window.top.postMessage({
-            message: "update html",
-            html: getHtmlString()
-          }); //inside the iframe
+          sendUpdatedHtmlMessage();
         }
       })
 
@@ -438,12 +402,8 @@ let originalSrcdoc = `
       });
 
 
-
-
       let currentCueIndex = 0;
-
       let scrollPos = 0;
-
       let interval = 600;
 
       let currentSceneEls = [];
@@ -508,7 +468,6 @@ let originalSrcdoc = `
 
       }
 
-
       setTimeout(function(){
         changeScene(window.scrollY, true);
       },100)
@@ -517,7 +476,6 @@ let originalSrcdoc = `
         scrollPos = window.scrollY;
         changeScene(window.scrollY);
       };
-
 
   </script>
 </html>
