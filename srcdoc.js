@@ -110,7 +110,8 @@ let originalSrcdoc = `
       let resizeInfo = {
         corner: null,
         el: null,
-        ratio: null
+        ratio: null,
+        orignalPos: {x:null,y:null}
       }
       let images = document.querySelectorAll("img");
 
@@ -164,19 +165,25 @@ let originalSrcdoc = `
 
       let updateResizeCursors = function(thisEl,pos){
         if (bottomRightCorner(thisEl,pos)) {
+
             document.body.classList.add('nwse-resizing');
             thisEl.classList.add('nwse-resizing');
            }
-          // else if (topRightCorner(thisEl,pos)){
-          //   thisEl.classList.add('nesw-resizing');
-          //  } else if (bottomLeftCorner(thisEl,pos)){
-          //   thisEl.classList.add('nesw-resizing');
-          //  } else if (topLeftCorner(thisEl,pos)){
+          else if (topRightCorner(thisEl,pos)){
+            document.body.classList.add('nesw-resizing');
+            thisEl.classList.add('nesw-resizing');
+           }
+          else if (bottomLeftCorner(thisEl,pos)){
+            document.body.classList.add('nesw-resizing');
+            thisEl.classList.add('nesw-resizing');
+           }
+
+          // else if (topLeftCorner(thisEl,pos)){
           //   thisEl.classList.add('nwse-resizing');
           //  }
 
            else {
-
+            document.body.classList.remove('nesw-resizing');
             document.body.classList.remove('nwse-resizing');
             thisEl.classList.remove('nesw-resizing');
             thisEl.classList.remove('nwse-resizing');
@@ -187,7 +194,10 @@ let originalSrcdoc = `
       images.forEach(function(image){
         image.addEventListener("mouseover",function(e){
           let thisEl =e.target;
-          let pos = {x:e.clientX-thisEl.getBoundingClientRect().left, y: e.clientY-thisEl.getBoundingClientRect().top };
+          let pos = {
+            x: e.clientX-thisEl.getBoundingClientRect().left,
+            y: e.clientY-thisEl.getBoundingClientRect().top
+          };
           if (!currentlyResizing){
             updateResizeCursors(thisEl, pos);
           }
@@ -196,7 +206,10 @@ let originalSrcdoc = `
 
         image.addEventListener("mousemove",function(e){
           let thisEl =e.target;
-          let pos = {x:e.clientX-thisEl.getBoundingClientRect().left, y: e.clientY-thisEl.getBoundingClientRect().top };
+          let pos = {
+            x:e.clientX-thisEl.getBoundingClientRect().left,
+            y: e.clientY-thisEl.getBoundingClientRect().top
+          };
           if (!currentlyResizing){
             updateResizeCursors(thisEl, pos);
           }
@@ -240,17 +253,37 @@ let originalSrcdoc = `
             resizeInfo = {
               corner:"bottomRight",
               el: thisEl,
-              ratio: clickedPos.x/thisEl.getBoundingClientRect().width
+              ratio: clickedPos.x/thisEl.getBoundingClientRect().width,
+              originalPos: {
+                x: thisEl.getBoundingClientRect().left,
+                y: thisEl.getBoundingClientRect().top
+              }
+            }
+           } else if (topRightCorner(thisEl,clickedPos)) {
+            currentlyResizing = true;
+            resizeInfo = {
+              corner:"topRight",
+              el: thisEl,
+              ratio: clickedPos.x/thisEl.getBoundingClientRect().width,
+              originalPos: {
+                x: thisEl.getBoundingClientRect().left,
+                y: thisEl.getBoundingClientRect().top
+              }
             }
           }
-          // else if (bottomLeftCorner(thisEl,clickedPos)) {
-          //   currentlyResizing = true;
-          //   resizeInfo = {
-          //     corner:"bottomLeft",
-          //     el: thisEl,
-          //     ratio: (thisEl.getBoundingClientRect().width-clickedPos.x)/thisEl.getBoundingClientRect().width
-          //   }
-          // } else if (topRightCorner(thisEl,clickedPos)) {
+          else if (bottomLeftCorner(thisEl,clickedPos)) {
+            currentlyResizing = true;
+            resizeInfo = {
+              corner:"bottomLeft",
+              el: thisEl,
+              ratio: (thisEl.getBoundingClientRect().width-clickedPos.x)/thisEl.getBoundingClientRect().width,
+              originalPos: {
+                x: thisEl.getBoundingClientRect().left,
+                y: thisEl.getBoundingClientRect().top
+              }
+            }
+          }
+          // else if (topRightCorner(thisEl,clickedPos)) {
           //   currentlyResizing = true;
           //   resizeInfo = {
           //     corner:"topRight",
@@ -299,12 +332,33 @@ let originalSrcdoc = `
         if (currentlyResizing){
           let thisEl = resizeInfo.el;
           let newWidth;
+          let dy;
+          let dx;
+          let changeRatio;
           if (resizeInfo.corner == "bottomRight"){
             if (e.clientX > thisEl.getBoundingClientRect().left){
               newWidth = (e.clientX - thisEl.getBoundingClientRect().left)/resizeInfo.ratio;
               // thisEl.style.transformOrigin = "top left";
             }
           }
+          else if (resizeInfo.corner == "topRight"){
+            if (e.clientX > thisEl.getBoundingClientRect().left){
+              newWidth = (e.clientX - thisEl.getBoundingClientRect().left)/resizeInfo.ratio;
+              changeRatio = newWidth / thisEl.naturalWidth;
+              dy = thisEl.naturalHeight * (1-changeRatio);
+              thisEl.style.top = (resizeInfo.originalPos.y + dy)+ "px";
+            }
+          }
+          else if (resizeInfo.corner == "bottomLeft"){
+            if (e.clientX < (thisEl.getBoundingClientRect().left+thisEl.getBoundingClientRect().width)){
+              newWidth = (thisEl.getBoundingClientRect().right -  e.clientX)/resizeInfo.ratio ;
+              changeRatio = newWidth / thisEl.naturalWidth;
+              dx = thisEl.naturalWidth * (1-changeRatio);
+              console.log(dx);
+              thisEl.style.left = (resizeInfo.originalPos.x + dx)+ "px";
+            }
+          }
+
           // else if (resizeInfo.corner == "bottomLeft"){
           //   if (e.clientX < (thisEl.getBoundingClientRect().left+thisEl.getBoundingClientRect().width) && e.clientY > thisEl.getBoundingClientRect().top){
           //     newWidth = (thisEl.getBoundingClientRect().right -  e.clientX)/resizeInfo.ratio ;
@@ -318,14 +372,14 @@ let originalSrcdoc = `
           //     thisEl.style.transformOrigin = "bottom left";
           //   }
           // }
-          let ratio = newWidth / thisEl.naturalWidth;
+          // let ratio = newWidth / thisEl.naturalWidth;
           thisEl.style.width = newWidth+"px";
           // thisEl.style.border =  (2/ratio)+"px solid rgba(135,183,255,1)";
           // thisEl.style.transform = "scale("+ratio+")";
           // thisEl.style.transform = "scale("+ratio+")";
-
-
-
+        } else {
+          document.body.classList.remove('nwse-resizing');
+          document.body.classList.remove('nesw-resizing');
         }
       })
       document.addEventListener('mouseup',function(e){
@@ -355,7 +409,8 @@ let originalSrcdoc = `
           resizeInfo = {
             corner: null,
             el: null,
-            ratio: null
+            ratio: null,
+            originalPos: {x:null,y:null}
           }
           window.top.postMessage({
             message: "update html",

@@ -10,7 +10,6 @@ let numObjects = 0;
 let cueCount = document.querySelector("#cueCount");
 
 let currentCue = parseInt(cueCount.innerHTML);
-console.log(currentCue);
 
 let currentElement = null;
 let startCueInput = document.querySelector("#startCue");
@@ -66,13 +65,13 @@ window.onmessage = function (e) {
     let thisId = e.data.id;
     let thisEl = htmlDoc.querySelector(`img[data-id="${e.data.id}"`);
     currentElement = thisEl;
-    console.log(thisEl);
+
     //update values in UI
     let dataCues = JSON.parse(thisEl.dataset.cues);
-    console.log(dataCues[0]);
     startCueInput.value = dataCues[0];
     endCueInput.value = dataCues[dataCues.length - 1];
     currentIdInput.innerHTML = thisId;
+    currentImgPreview.src = thisEl.src;
   }
 };
 
