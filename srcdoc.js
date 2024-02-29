@@ -300,6 +300,18 @@ let originalSrcdoc = `
 
       });
 
+      let deleteSelectedImages = function(){
+        let sceneContainer = document.querySelector("#sceneContainer");
+          Array.from(document.querySelectorAll('img.selected')).forEach(function(element){
+            sceneContainer.removeChild(element);
+          });
+          sendUpdatedHtmlMessage();
+      }
+      document.addEventListener('keydown',function(e){
+        if (e.keyCode == '8' || e.keyCode == '46'){
+          deleteSelectedImages();
+        }
+      });
       document.addEventListener('mousemove',function(e){
         if (currentlyDragging){
            draggingEl.style.left = (e.clientX - clickedPos.x) +"px" ;
