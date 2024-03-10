@@ -1,4 +1,3 @@
-let addImageButton = document.querySelector("#addImage");
 let previewIframe = document.querySelector("#preview");
 
 var parser = new DOMParser();
@@ -89,21 +88,24 @@ window.onmessage = function (e) {
   }
   if (e.data.message == "deselected el") {
     console.log("get deselect mesage");
+    toggleSettingsDisplay("canvas");
   }
 };
 
 let toggleSettingsDisplay = function (type) {
-  if (type == "library") {
-    document.querySelector(".librarySettings").style.display = "block";
-    document.querySelector(".elementSettings").style.display = "none";
-  } else if (type == "image") {
+  if (type == "image") {
     document.querySelector(".elementSettings").style.display = "block";
     document.querySelector(".showForTextEl").style.display = "none";
     document.querySelector(".showForImgEl").style.display = "block";
+    document.querySelector(".canvasSettings").style.display = "none";
   } else if (type == "text") {
     document.querySelector(".elementSettings").style.display = "block";
     document.querySelector(".showForTextEl").style.display = "block";
     document.querySelector(".showForImgEl").style.display = "none";
+    document.querySelector(".canvasSettings").style.display = "none";
+  } else if (type == "canvas") {
+    document.querySelector(".elementSettings").style.display = "none";
+    document.querySelector(".canvasSettings").style.display = "block";
   }
 };
 
@@ -128,9 +130,10 @@ let generateDataCueString = function (startFrame, endFrame) {
 };
 
 //TODO: create a wrapper for image that contains the containing div and the selection points
-let addImage = function (imageSrc, xPos, yPos) {
+let addImage = function (image, xPos, yPos) {
   let img = new Image();
-  img.src = imageSrc;
+  img.src = image.src;
+  // img.setAttribute("data-type", image.dataset.type);
   img.classList.add("maxWidth");
 
   //Resize image so its not fuckin huge
@@ -191,7 +194,6 @@ let addElementToScene = function (el) {
   sceneContainer.appendChild(el);
 
   //Change preview iframe frame to the html
-
   updateIframeAndTimeline();
 };
 
@@ -209,11 +211,29 @@ let updateCues = function (startFrame, endFrame) {
   }
 };
 
+document.addEventListener("keydown", function (e) {
+  if (e.keyCode == "8" || e.keyCode == "46") {
+    sendDeleteMessage();
+  }
+});
+
 // KEEP IFRAME SCROLLED TO RECENT POSITION
 
 previewIframe.onload = function () {
   this.contentWindow.scrollTo(0, currentScrollPos);
 };
+
+//GENERAL ELEMENT STUFF
+
+let deleteButton = document.querySelector("#delete");
+
+let sendDeleteMessage = function () {
+  previewIframe.contentWindow.postMessage({ message: "delete el" });
+};
+
+deleteButton.addEventListener("click", function () {
+  sendDeleteMessage();
+});
 
 // IMAGE STUFF
 
@@ -225,11 +245,49 @@ const img = document.getElementById("img");
 const imageCollection = document.querySelector("#image-collection");
 
 let imageLibrary = [];
+let addImageButton = document.querySelector("#addImage");
 
-let imageLibraryButton = document.querySelector("#image-library-button");
+let openImageButton = document.querySelector("#open-image");
+let imageLibraryPanel = document.querySelector("#imageLibraryPanel");
+let closeLibraryButton = document.querySelector("#closeLibrary");
 
-imageLibraryButton.addEventListener("click", function () {
-  toggleSettingsDisplay("library");
+let isLibraryPanelOpen = false;
+
+// let imageLibraryButton = document.querySelector("#image-library-button");
+
+// imageLibraryButton.addEventListener("click", function () {
+//   toggleSettingsDisplay("library");
+// });
+
+let closeLibraryPanel = function () {
+  isLibraryPanelOpen = false;
+  imageLibraryPanel.classList.remove("show");
+  scenePreviewContainer.classList.remove("libraryPanelOpen");
+};
+
+openImageButton.addEventListener("click", function () {
+  isLibraryPanelOpen = !isLibraryPanelOpen;
+  if (isLibraryPanelOpen) {
+    imageLibraryPanel.classList.add("show");
+    scenePreviewContainer.classList.add("libraryPanelOpen");
+  } else {
+    imageLibraryPanel.classList.remove("show");
+    scenePreviewContainer.classList.remove("libraryPanelOpen");
+  }
+});
+closeLibraryButton.addEventListener("click", function () {
+  closeLibraryPanel();
+});
+
+// Background Color
+let backgroundColorPicker = document.querySelector("#backgroundColor");
+backgroundColorPicker.addEventListener("change", (e) => {
+  let color = e.target.value;
+  let body = htmlDoc.querySelector("body");
+  console.log(body);
+  body.style.backgroundColor = color;
+  clearClasses();
+  updateIframeAndTimeline();
 });
 
 function getImg(event) {
@@ -237,20 +295,21 @@ function getImg(event) {
   let displacement = 0;
   Array.from(files).forEach(function (file) {
     let url = window.URL.createObjectURL(file);
+    let imgType = file.type.split("/")[1];
 
     let newImg = new Image();
     newImg.src = url;
     newImg.classList.add("imageLibraryPreview");
-
     //Add images onto screen
-    newImg.addEventListener("load", function () {
-      addImage(
-        url,
-        canvasWidth / 2 - newImg.naturalWidth / 2 + displacement,
-        canvasHeight / 2 - newImg.naturalHeight / 2 + displacement
-      );
-      displacement += 20;
-    });
+
+    // newImg.addEventListener("load", function () {
+    //   addImage(
+    //     url,
+    //     canvasWidth / 2 - newImg.naturalWidth / 2 + displacement,
+    //     canvasHeight / 2 - newImg.naturalHeight / 2 + displacement
+    //   );
+    //   displacement += 20;
+    // });
 
     newImg.addEventListener("mousedown", function (e) {
       let draggedImage = new Image();
@@ -261,9 +320,18 @@ function getImg(event) {
       draggedImage.style.top = `${e.clientY - newImg.naturalHeight / 2}px`;
       currentlyDraggingLibraryImage = true;
     });
+    // newImg.addEventListener("click", function (e) {
+    //   console.log("hi");
+    //   addImage(
+    //     url,
+    //     canvasWidth / 2 - newImg.naturalWidth / 2 + displacement,
+    //     canvasHeight / 2 - newImg.naturalHeight / 2 + displacement
+    //   );
+    //   displacement += 20;
+    // });
 
     imageCollection.appendChild(newImg);
-    imageLibrary.push(newImg);
+    imageLibrary.push({ img: newImg, file: file, type: imgType });
   });
 }
 
@@ -277,26 +345,6 @@ document.addEventListener("mousemove", function (e) {
     document.querySelector("#preview").classList.add("inactive");
   }
 });
-
-// document.addEventListener("click", function (e) {
-//   console.log(e.target);
-//   if (addingText && e.target != addTextButton) {
-//     console.log("should add text here");
-//     let sceneContainer = htmlDoc.querySelector("#sceneContainer");
-//     let clickedPos = {
-//       x:
-//         e.clientX -
-//         previewIframe.offsetLeft -
-//         sceneContainer.getBoundingClientRect().left,
-//       y:
-//         e.clientY -
-//         previewIframe.offsetTop -
-//         sceneContainer.getBoundingClientRect().top,
-//     };
-//     addText(clickedPos.x, clickedPos.y);
-//     addingText = false;
-//   }
-// });
 
 document.addEventListener("mouseup", function (e) {
   if (currentlyDraggingLibraryImage) {
@@ -326,7 +374,7 @@ document.addEventListener("mouseup", function (e) {
         ) -
         draggedImage.naturalHeight / 2,
     };
-    addImage(draggedImage.src, droppedPos.x, droppedPos.y);
+    addImage(draggedImage, droppedPos.x, droppedPos.y);
     draggedImage.remove();
     currentlyDraggingLibraryImage = false;
     previewIframe.classList.remove("inactive");
@@ -388,11 +436,9 @@ let addText = function (xPos, yPos) {
 };
 
 addTextButton.addEventListener("click", function () {
-  console.log("setting adding to true");
   addingText = true;
   previewIframe.contentWindow.postMessage({ message: "adding text" });
-
-  // document.body.style.cursor = "crosshair";
+  closeLibraryPanel();
 });
 
 // TEXT SETTINGS
@@ -588,3 +634,41 @@ let updateSelectedPreviewScene = function () {
 };
 
 updatePreviewTimeline();
+
+// JS Zip stuff
+let exportButton = document.querySelector("#export");
+exportButton.addEventListener("click", function () {
+  let htmlDocCopy = htmlDoc.cloneNode(true);
+  let storyTitle = document.querySelector("#title").value;
+  // let titleToFolderName = storyTitle.replace("s*", "-").replace(".");
+  var zip = new JSZip();
+
+  let sceneEls = htmlDocCopy.querySelectorAll(".sceneEl");
+  htmlDocCopy.querySelector("title").innerHTML = storyTitle;
+  var imgFolder = zip.folder("images");
+  var fontFolder = zip.folder("fonts");
+
+  Array.from(sceneEls).forEach(function (sceneEl) {
+    let id = sceneEl.dataset.id;
+    if (sceneEl.tagName == "IMG") {
+      let type = imageLibrary[id].type;
+      let blob = imageLibrary[id].file;
+
+      let fileName = `img${id}.${type}`;
+      let newSrc = `images/${fileName}`;
+      imgFolder.file(fileName, blob);
+      sceneEl.src = newSrc;
+    }
+    sceneEl.setAttribute("contenteditable", false);
+    sceneEl.setAttribute("selected", false);
+    sceneEl.setAttribute("hover", false);
+  });
+
+  zip.file("index.html", htmlDocCopy.documentElement.outerHTML);
+
+  // img.file("smile.gif", imgData, {base64: true});
+  zip.generateAsync({ type: "blob" }).then(function (content) {
+    // see FileSaver.js
+    saveAs(content, "myComic.zip");
+  });
+});

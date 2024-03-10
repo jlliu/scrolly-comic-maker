@@ -6,18 +6,36 @@
 
 
 	<link rel="stylesheet" href="style.css">
+	<script src="dist/FileSaver.min.js"></script>
+	<script src="dist/jszip.min.js"></script>
+
 </head>
 <body>
 	<header>
 		<h1>Scrolly comic maker</h1>
+		<button id="export">Export</button>
 	</header>
 	<div class="editor">
 		<div id="leftPanel">
-			<button id="add-image" onclick="document.getElementById('image-upload').click()">Upload image</button>
-			<input id="image-upload" type="file" multiple="multiple" />
-			<button id="image-library-button">Image library</button>
-			<button id="add-text">Add Text</button>
+			<button id="open-image">Image</button>
 
+
+			<!-- <button id="image-library-button">Image</button> -->
+			<button id="add-text">Text</button>
+			<button disabled>Undo</button>
+			<button disabled>Redo</button>
+
+		</div>
+		<div id="imageLibraryPanel">
+			<h2>library</h2>
+				<button id="add-image" onclick="document.getElementById('image-upload').click()">Upload New</button>
+				<input id="image-upload" type="file" multiple="multiple" />
+
+				<p><i>Drag images onto the canvas</i></i></p>
+			<div id="image-collection" >
+
+			</div>
+			<button id="closeLibrary">Close</button>
 		</div>
 		<div id="previewContainer">
 			<iframe id="preview" srcdoc=""></iframe>
@@ -44,10 +62,16 @@
 		 <div id="rightPanel">
 			<!-- <div id="settings"> -->
 
-				<div class="settingsGroup librarySettings"
-					<h2>library</h2>
-					<div id="image-collection" >
-					</div>
+				<div class="settingsGroup canvasSettings">
+
+
+					<h2>Canvas settings</h2>
+
+					<input type="text" id="title" name="title" required minlength="1" maxlength="200" value="Untitled Comic"  /> <br><br>
+
+					<label for="Background Color">Background color</label>
+					<input type="color" id="backgroundColor" name="Background Color" value="#FFFFFF" />
+
 				</div>
 
 
@@ -75,12 +99,14 @@
 						<br>
 						<label for="Font Color">Text color</label>
 						<input type="color" id="fontColor" name="Font Color" value="#000000" />
+						<br>
+						<label for="end Cue">Font size</label>
+						<input type="number" id="fontSize" name="Font size" min="8" max="400" value="24" />
 					</div>
-					<br>
-					<label for="end Cue">Font size</label>
-					<input type="number" id="fontSize" name="Font size" min="8" max="400" value="24" />
-					<button id="sendForward" class="showForImgEl showForTextEl">Bring to front</button>
-					<button id="sendBack" class="showForImgEl showForTextEl">Send to back</button>
+
+					<button id="sendForward" >Bring to front</button><br>
+					<button id="sendBack" >Send to back</button><br>
+					<button id="delete">Delete</button>
 				</div>
 
 

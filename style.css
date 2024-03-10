@@ -14,9 +14,15 @@ header{
   padding-right:24px;
   height:60px;
   display:flex;
+  justify-content:space-between;
 }
 header h1 {
   font-size:20px;
+}
+#export{
+  margin: 8px;
+  width: 120px;
+
 }
 .editor {
   height:100%;
@@ -26,15 +32,15 @@ header h1 {
 }
 
 #leftPanel {
-  flex-basis: 100px;
+  flex-basis: 64px;
   flex-grow: 0;
   flex-shrink: 0;
   background: white;
-  border:2px solid grey;
-  border-radius:16px;
+  /* border:2px solid grey; */
+  /* border-radius:16px; */
   margin:24px;
-  margin-right:0px;
-  padding:24px;
+  margin-right:16px;
+  padding:0px;
 
   overflow:scroll;
   display:flex;
@@ -43,10 +49,26 @@ header h1 {
 }
 
 #leftPanel button {
-width:100px;
-height:100px;
+width:60px;
+height:60px;
 }
 
+#imageLibraryPanel{
+
+  padding:16px;
+  flex-basis: 200px;
+  flex-grow: 0;
+  flex-shrink: 0;
+  margin:24px 0px;
+  background: white;
+  border:2px solid grey;
+  border-radius:16px;
+  display:none;
+  flex-direction:column;
+}
+#imageLibraryPanel.show{
+  display:flex;
+}
 
 #settings {
   display:none;
@@ -54,6 +76,9 @@ height:100px;
 
 .settingsGroup{
   display:none;
+}
+.settingsGroup.canvasSettings{
+  display:block;
 }
 #rightPanel {
   background: white;
@@ -96,6 +121,8 @@ height:100px;
 }
 #image-collection{
   border:1px solid black;
+  min-height:200px;
+  margin:24px 0px;
 }
 .imageLibraryPreview{
   width:70px;
@@ -172,10 +199,15 @@ iframe.inactive{
   height: 60px;
   overflow: scroll;
   overflow-y: hidden;
-  width: calc(100vw - 550px);
+  width: calc(100vw - 478px);
   border: 1px solid black;
 
 }
+
+#scenePreviewContainer.libraryPanelOpen {
+  width: calc(100vw - 714px);
+}
+
 
 #sceneWrapperContainer{
   /* display:flex;

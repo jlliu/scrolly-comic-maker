@@ -1,6 +1,7 @@
 let originalSrcdoc = `
 <html>
   <head>
+    <title>My Comic</title>
     <style>
       body {
         margin:0px;
@@ -26,7 +27,7 @@ let originalSrcdoc = `
         transform: translate(-50%, -50%);
         width: 800px;
         height: 600px;
-        border: 2px dotted grey;
+        border: 2px dotted rgba(0, 0, 0, 0.333);
       }
       #scrollContainer{
         height:9600px;
@@ -165,6 +166,8 @@ let originalSrcdoc = `
       let editingTextEl = null;
 
 
+
+
       let currentlyResizing = false;
       let resizeInfo = {
         corner: null,
@@ -193,8 +196,13 @@ let originalSrcdoc = `
 
       window.onmessage = function (e) {
         if (e.data.message == "adding text"){
+
           document.body.classList.add("addingText");
         }
+        if (e.data.message == "delete el"){
+          deleteSelectedElements();
+        }
+
       }
       let sendUpdatedHtmlMessage = function(){
         window.top.postMessage({
@@ -204,6 +212,7 @@ let originalSrcdoc = `
       }
 
       let sendClickMessage= function(clickedPos){
+
         window.top.postMessage({
             message: "click",
             clickedPos: clickedPos
@@ -301,6 +310,7 @@ let originalSrcdoc = `
 
         el.addEventListener("input", function(e){
           let thisEl = e.target;
+          console.log("SETTING ADDING TEXT TO FALSE")
           document.body.classList.remove("addingText");
           sendUpdatedHtmlMessage();
         });
@@ -348,26 +358,28 @@ let originalSrcdoc = `
         })
 
         el.addEventListener("mousedown",function(e){
-          console.log("you mousedown on me");
-          let thisEl =e.target;
 
-          clickedPos = {
-            x:e.clientX-thisEl.getBoundingClientRect().left,
-            y: e.clientY-thisEl.getBoundingClientRect().top
-          };
+            console.log("you mousedown on me");
+            let thisEl =e.target;
 
-
-
-          // make this image selected
-          sceneEls.forEach(function (sceneEl) {
-            sceneEl.classList.remove('selected');
-          });
-          e.target.classList.add('selected');
-          sendSelectedElMessage(e);
+            clickedPos = {
+              x:e.clientX-thisEl.getBoundingClientRect().left,
+              y: e.clientY-thisEl.getBoundingClientRect().top
+            };
 
 
-          // Are we dragging or resizing?
-          let dimensions = thisEl.getBoundingClientRect();
+
+            // make this image selected
+            sceneEls.forEach(function (sceneEl) {
+              sceneEl.classList.remove('selected');
+            });
+            e.target.classList.add('selected');
+            console.log("i'm selecting something")
+            sendSelectedElMessage(e);
+
+
+            // Are we dragging or resizing?
+            let dimensions = thisEl.getBoundingClientRect();
 
 
 
@@ -407,6 +419,8 @@ let originalSrcdoc = `
           // if (thisEl.tagName == "PRE"){
           //   editingText = true;
           // }
+
+
         })
 
         el.addEventListener("click",function(e){
@@ -431,9 +445,12 @@ let originalSrcdoc = `
       let deleteSelectedElements = function(){
 
           Array.from(document.querySelectorAll('.sceneEl.selected:not(.editingText)')).forEach(function(element){
-            sceneContainer.removeChild(element);
+            deleteElement(element);
           });
           sendUpdatedHtmlMessage();
+      }
+      let deleteElement = function(element){
+        sceneContainer.removeChild(element);
       }
       document.addEventListener('keydown',function(e){
         if (e.keyCode == '8' || e.keyCode == '46'){
@@ -512,7 +529,7 @@ let originalSrcdoc = `
           editingTextEl.classList.remove('editingText');
 
           if (editingTextEl.innerHTML == ""){
-            deleteSelectedElements();
+            deleteElement(editingTextEl);
           }
           editingTextEl = null;
         }
@@ -550,6 +567,7 @@ let originalSrcdoc = `
         }
       })
       document.addEventListener("click", function(e){
+        document.body.classList.remove("addingText");
         let clickedPos = {
             x:
             correctScale(e.clientX -
