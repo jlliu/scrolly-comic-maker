@@ -1,11 +1,81 @@
 body {
   display:flex;
+  flex-direction:column;
+  /* gap:24px; */
+  margin:0px;
+  height:100vh;
+  overscroll-behavior: none;
+  overflow:hidden;
+}
+
+header{
+  /* background:yellow; */
+  padding-left:24px;
+  padding-right:24px;
+  height:60px;
+  display:flex;
+}
+header h1 {
+  font-size:20px;
+}
+.editor {
+  height:100%;
+  display:flex;
+  flex-direction:row;
+  /* gap:16px; */
+}
+
+#leftPanel {
+  flex-basis: 100px;
+  flex-grow: 0;
+  flex-shrink: 0;
+  background: white;
+  border:2px solid grey;
+  border-radius:16px;
+  margin:24px;
+  margin-right:0px;
+  padding:24px;
+
+  overflow:scroll;
+  display:flex;
+  flex-direction: column;
   gap:24px;
 }
 
+#leftPanel button {
+width:100px;
+height:100px;
+}
+
+
+#settings {
+  display:none;
+}
+
+.settingsGroup{
+  display:none;
+}
+#rightPanel {
+  background: white;
+  border:2px solid grey;
+  border-radius:16px;
+  flex-basis: 200px;
+  flex-grow: 0;
+  flex-shrink: 0;
+  margin:24px;
+  margin-left:0px;
+  padding:24px;
+  overflow:scroll;
+  height: calc(100vh - 162px);
+}
+
 #preview{
-  height:600px;
-  width:800px;
+  /* height:600px;
+  width:800px; */
+  height:100%;
+  width:100%;
+  overscroll-behavior: contain;
+
 }
 #currentImgPreview{
   width:80px;
@@ -14,7 +84,16 @@ body {
   margin-right:16px;
 }
 
+#previewContainer{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  margin:24px;
+}
 
+#image-upload{
+  display:none;
+}
 #image-collection{
   border:1px solid black;
 }
@@ -56,4 +135,157 @@ body {
 
 iframe.inactive{
   pointer-events:none;
+}
+
+#timelineContainer{
+  display: flex;
+  border: 1px solid black;
+  height: 30px;
+  margin: 16px 0px;
+}
+
+#timelineSlider{
+  width:2px;
+  height:100%;
+  background-color: red;
+  position:relative;
+}
+
+
+
+.timelineSection{
+  display:flex;
+  gap:8px;
+
+}
+.buttons{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+#frame-add, #frame-subtract{
+  width:40px;
+  height:100%;
+}
+
+#scenePreviewContainer {
+  height: 60px;
+  overflow: scroll;
+  overflow-y: hidden;
+  width: calc(100vw - 550px);
+  border: 1px solid black;
+
+}
+
+#sceneWrapperContainer{
+  /* display:flex;
+  flex-direction:row; */
+  width:max-content;
+}
+
+.sceneWrapper{
+  display:inline-block;
+  width:80px;
+  height:60px;
+  border:2px solid rgb(226, 226, 226);
+}
+.sceneWrapper.selected{
+  box-sizing:border-box;
+  border:2px solid blue;
+}
+.sceneContainer {
+  pointer-events:none;
+  width: 800px;
+  height: 600px;
+  transform: scale(.1);
+  transform-origin:top left;
+  position:relative;
+  /* border:2px solid black; */
+  overflow:hidden;
+  box-sizing:border-box;
+  pointer-events:none !important;
+  /* margin-right: -643px; */
+}
+
+.sceneEl {
+
+  position:absolute;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -o-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  -ms-user-drag: none;
+  user-drag: none;
+
+  opacity:0;
+  display: none;
+  transition: none;
+  position:absolute;
+  top:0px;
+  left:0px;
+  box-sizing: border-box;
+  pointer-events:none !important;
+
+
+  /* transform: scale(.2); */
+
+}
+pre.sceneEl{
+  font-size:24px;
+  margin:0px;
+  display:inline-block;
+  white-space: pre-wrap;
+  tab-size:4;
+}
+pre.sceneEl * {
+  pointer-events: none;
+}
+
+img.sceneEl {
+  position:absolute;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -o-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  -ms-user-drag: none;
+  user-drag: none;
+
+  image-rendering: optimizeSpeed;             /* STOP SMOOTHING, GIVE ME SPEED  */
+  image-rendering: -moz-crisp-edges;          /* Firefox                        */
+  image-rendering: -o-crisp-edges;            /* Opera                          */
+  image-rendering: -webkit-optimize-contrast; /* Chrome (and eventually Safari) */
+  image-rendering: pixelated;                 /* Universal support since 2021   */
+  image-rendering: optimize-contrast;         /* CSS3 Proposed                  */
+  -ms-interpolation-mode: nearest-neighbor;   /* IE8+                           */
+
+}
+img.sceneEl.maxWidth{
+  max-width: calc(100vw - 40px);
+}
+pre.sceneEl.maxWidth{
+  max-width: 400px;
+}
+
+.sceneEl.display{
+  display:inline-block;
+}
+
+.sceneEl.visible{
+  opacity:1;
+  transition:  opacity .4s ease-in 0s, background .2s;
+  pointer-events:all;
 }

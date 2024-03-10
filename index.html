@@ -8,30 +8,96 @@
 	<link rel="stylesheet" href="style.css">
 </head>
 <body>
-	<div id="panel">
+	<header>
 		<h1>Scrolly comic maker</h1>
-		<input id="image-upload" type="file" />
-		<div id="image-collection">
+	</header>
+	<div class="editor">
+		<div id="leftPanel">
+			<button id="add-image" onclick="document.getElementById('image-upload').click()">Upload image</button>
+			<input id="image-upload" type="file" multiple="multiple" />
+			<button id="image-library-button">Image library</button>
+			<button id="add-text">Add Text</button>
+
 		</div>
-		<div id="settings">
-			<h2>Image properties</h2>
-			<img src="" id="currentImgPreview" />
-			<p>Image: <i id="currentId">0</i></p>
-			<label for="start cue">Start frame:</label>
-		<input type="number" id="startCue" name="Start cue" min="0" max="15" />
-			<br>
-		<label for="end Cue">End frame:</label>
-		<input type="number" id="endCue" name="Start cue" min="0" max="15" />
-		</div>
-		<!-- <button id="addImage">Add Image</button> -->
-	</div>
-	<div id="previewContainer">
-		<iframe id="preview" srcdoc=""></iframe>
-		<p>Current frame: <i id="cueCount">0</i></p>
+		<div id="previewContainer">
+			<iframe id="preview" srcdoc=""></iframe>
+			<p>Current frame: <i id="cueCount">0</i></p>
+			<!-- <div id="timelineContainer">
+				<div id="timelineSlider"></div>
+			</div> -->
+
+			<div class="timelineSection">
+				<div id="scenePreviewContainer">
+					<div id="sceneWrapperContainer">
+					</div>
+				</div>
+				<div class="buttons">
+					<button id="frame-add">+</button>
+					<button id="frame-subtract">-</button>
+				</div>
+			</div>
+
+
+
+	   </div>
+
+		 <div id="rightPanel">
+			<!-- <div id="settings"> -->
+
+				<div class="settingsGroup librarySettings"
+					<h2>library</h2>
+					<div id="image-collection" >
+					</div>
+				</div>
+
+
+				<div class="settingsGroup elementSettings">
+					<h2 class="showForImgEl">Image settings</h2>
+					<!-- <img class="showForImgEl" src="" id="currentImgPreview" />
+					<p class="showForImgEl showForTextEl" >Id: <i id="currentId">0</i></p> -->
+					<label for="start cue">Start frame:</label>
+					<input type="number" id="startCue" name="Start cue" min="0"  max="1000" />
+						<br>
+					<label for="end Cue">End frame:</label>
+					<input type="number" id="endCue" name="Start cue" min="0" max="1000" />
+
+
+					<!-- Font related settings -->
+					<div class="showForTextEl">
+						<h3>Text settings</h3>
+						<label for="fonts">Choose a font:</label>
+
+						<select name="cars" id="fontSelector">
+							<option value="Comic Neue">Comic Neue</option>
+							<option value="Rainy Hearts">Rainy Hearts</option>
+							<option value="Bad Comic">Bad Comic</option>
+						</select>
+						<br>
+						<label for="Font Color">Text color</label>
+						<input type="color" id="fontColor" name="Font Color" value="#000000" />
+					</div>
+					<br>
+					<label for="end Cue">Font size</label>
+					<input type="number" id="fontSize" name="Font size" min="8" max="400" value="24" />
+					<button id="sendForward" class="showForImgEl showForTextEl">Bring to front</button>
+					<button id="sendBack" class="showForImgEl showForTextEl">Send to back</button>
+				</div>
+
+
+			</div>
+
+
+
+
+
+
+		 <!-- </div> -->
+
 
 	</div>
 
 </body>
+<script src="global.js"></script>
 <script src="srcdoc.js"></script>
 <script src="script.js"></script>
 </html>
