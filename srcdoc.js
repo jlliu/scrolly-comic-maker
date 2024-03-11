@@ -215,7 +215,7 @@ let originalSrcdoc = `
 
       }
       let sendUpdatedHtmlMessage = function(){
-        window.top.postMessage({
+        window.parent.postMessage({
             message: "update html",
             html: getHtmlString()
         });
@@ -223,7 +223,7 @@ let originalSrcdoc = `
 
       let sendClickMessage= function(clickedPos){
 
-        window.top.postMessage({
+        window.parent.postMessage({
             message: "click",
             clickedPos: clickedPos
         });
@@ -625,7 +625,9 @@ let originalSrcdoc = `
       let prevSceneEls = [];
 
       let sendCueChangeMessage = function(){
-        window.top.postMessage({
+        console.log("sending cue change");
+        console.log(currentCueIndex);
+        window.parent.postMessage({
               message: "cue change",
               cueCount: currentCueIndex,
               scrollPos: scrollPos
@@ -633,7 +635,7 @@ let originalSrcdoc = `
       }
 
       let sendSelectedElMessage = function(e){
-        window.top.postMessage({
+        window.parent.postMessage({
             message: "selected el",
             id: e.target.dataset.id,
             // highestZindex: highestZindex,
@@ -643,7 +645,7 @@ let originalSrcdoc = `
 
       // Sends when there is no selected replacement
       let sendDeselectMessage = function(){
-        window.top.postMessage({
+        window.parent.postMessage({
             message: "deselected el"
         })
       }
