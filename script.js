@@ -33,6 +33,8 @@ let sendBackButton = document.querySelector("#sendBack");
 let scenePreviewContainer = document.querySelector("#scenePreviewContainer");
 let sceneWrapperContainer = document.querySelector("#sceneWrapperContainer");
 
+let currentBackgroundColor = "white";
+
 window.onmessage = function (e) {
   if (e.data.message == "update html") {
     htmlDoc = parser.parseFromString(e.data.html, "text/html");
@@ -244,7 +246,7 @@ const img = document.getElementById("img");
 
 const imageCollection = document.querySelector("#image-collection");
 
-let imageLibrary = [];
+let imageLibrary = {};
 let addImageButton = document.querySelector("#addImage");
 
 let openImageButton = document.querySelector("#open-image");
@@ -282,10 +284,9 @@ closeLibraryButton.addEventListener("click", function () {
 // Background Color
 let backgroundColorPicker = document.querySelector("#backgroundColor");
 backgroundColorPicker.addEventListener("change", (e) => {
-  let color = e.target.value;
+  currentBackgroundColor = e.target.value;
   let body = htmlDoc.querySelector("body");
-  console.log(body);
-  body.style.backgroundColor = color;
+  body.style.backgroundColor = currentBackgroundColor;
   clearClasses();
   updateIframeAndTimeline();
 });
@@ -331,7 +332,7 @@ function getImg(event) {
     // });
 
     imageCollection.appendChild(newImg);
-    imageLibrary.push({ img: newImg, file: file, type: imgType });
+    imageLibrary.push[newImg.src] = { img: newImg, file: file, type: imgType };
   });
 }
 
@@ -340,8 +341,12 @@ inputImg.addEventListener("change", getImg);
 document.addEventListener("mousemove", function (e) {
   if (currentlyDraggingLibraryImage) {
     let draggedImage = document.querySelector("#draggedImage");
-    draggedImage.style.left = `${e.clientX - draggedImage.naturalWidth / 2}px`;
-    draggedImage.style.top = `${e.clientY - draggedImage.naturalHeight / 2}px`;
+    draggedImage.style.left = `${
+      e.clientX - draggedImage.getBoundingClientRect().width / 2
+    }px`;
+    draggedImage.style.top = `${
+      e.clientY - draggedImage.getBoundingClientRect().height / 2
+    }px`;
     document.querySelector("#preview").classList.add("inactive");
   }
 });
@@ -365,14 +370,14 @@ document.addEventListener("mouseup", function (e) {
             previewIframe.offsetLeft -
             sceneContainer.getBoundingClientRect().left
         ) -
-        draggedImage.naturalWidth / 2,
+        draggedImage.getBoundingClientRect().width / 2,
       y:
         correctScale(
           e.clientY -
             previewIframe.offsetTop -
             sceneContainer.getBoundingClientRect().top
         ) -
-        draggedImage.naturalHeight / 2,
+        draggedImage.getBoundingClientRect().height / 2,
     };
     addImage(draggedImage, droppedPos.x, droppedPos.y);
     draggedImage.remove();
@@ -599,16 +604,10 @@ let updatePreviewTimeline = function () {
     sceneWrapper.classList.add("sceneWrapper");
     sceneWrapper.setAttribute("data-cue", i);
 
+    thisScene.style.backgroundColor = currentBackgroundColor;
+
     //Cancel out transforms done in original canvas
     thisScene.style.transform = "";
-
-    // let outerWidth = 800;
-    // sceneWrapper.style.width = `calc(100% / ${frameNum + 1})`;
-    // sceneWrapper.style.height = `calc(${outerWidth}px / ${
-    //   frameNum + 1
-    // } / 1.333333333)`;
-    // thisScene.style.transform = `scale(${outerWidth / (frameNum + 1) / 800})`;
-    // thisScene.style.marginRight = -800 + outerWidth / (frameNum + 1);
 
     sceneWrapper.addEventListener("click", function (e) {
       let cue = parseInt(e.target.dataset.cue);
@@ -645,23 +644,27 @@ exportButton.addEventListener("click", function () {
 
   let sceneEls = htmlDocCopy.querySelectorAll(".sceneEl");
   htmlDocCopy.querySelector("title").innerHTML = storyTitle;
+  htmlDocCopy.querySelector("script").innerHTML = exportScript;
+  htmlDocCopy.querySelector("style").innerHTML = exportStyle;
   var imgFolder = zip.folder("images");
   var fontFolder = zip.folder("fonts");
 
   Array.from(sceneEls).forEach(function (sceneEl) {
     let id = sceneEl.dataset.id;
     if (sceneEl.tagName == "IMG") {
-      let type = imageLibrary[id].type;
-      let blob = imageLibrary[id].file;
+      let type = imageLibrary[sceneEl.src].type;
+      let blob = imageLibrary[sceneEl.src].file;
 
       let fileName = `img${id}.${type}`;
       let newSrc = `images/${fileName}`;
       imgFolder.file(fileName, blob);
       sceneEl.src = newSrc;
     }
+    sceneEl.classList.remove("visible");
+    sceneEl.classList.remove("display");
     sceneEl.setAttribute("contenteditable", false);
-    sceneEl.setAttribute("selected", false);
-    sceneEl.setAttribute("hover", false);
+    sceneEl.classList.remove("selected");
+    sceneEl.classList.remove("hover");
   });
 
   zip.file("index.html", htmlDocCopy.documentElement.outerHTML);

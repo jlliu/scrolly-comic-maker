@@ -141,12 +141,22 @@ let originalSrcdoc = `
         pointer-events:all;
       }
 
+      #parallaxTest{
+        position:absolute;
+        width:100%;
+        top:400px;
+        left:0px;
+      }
+
     </style>
 
   </head>
   <body>
     <div id="sceneContainer"></div>
-    <div id="scrollContainer" data-frame-num="15"></div>
+    <div id="scrollContainer" data-frame-num="15">
+      <!-- asdf
+      <img id="parallaxTest" src="img/test.png" /> -->
+    </div>
   </body>
   <script>
 
@@ -710,41 +720,6 @@ let originalSrcdoc = `
         let windowHeight = window.innerHeight;
 
         let gutters = 40;
-        // if (window.innerWidth < 600) {
-        //   gutters = 40;
-        // }
-        // if (window.innerWidth <  dimensions.w + gutters) {
-        //   let scale = window.innerWidth / ( dimensions.w + gutters);
-        //   let transform = window.getComputedStyle(sceneContainer).transform;
-        //   sceneContainer.style.transform = "translate(-50%, -50%) scale("+scale+")"
-        //   // sceneContainer.style.backgroundColor = "pink"
-        //   ;
-        // }
-
-        // if (window.innerHeight < dimensions.h) {
-        //   let scale = window.innerHeight /  (dimensions.h + gutters);
-        //   let transform = window.getComputedStyle(sceneContainer).transform;
-        //   sceneContainer.style.transform = "translate(-50%, -50%) scale("+scale+")"
-        //   // sceneContainer.style.backgroundColor = "yellow"
-        //   ;
-        // }
-
-        // if (window.innerHeight <  dimensions.h && window.innerWidth <  dimensions.w + gutters) {
-        //   let scaleX = window.innerWidth / ( dimensions.w + gutters);
-        //   let scaleY = window.innerHeight /  (dimensions.h+gutters);
-        //   let ratio = window.innerWidth / window.innerHeight;
-        //   let transform = window.getComputedStyle(sceneContainer).transform;
-        //   // sceneContainer.style.backgroundColor = "blue"
-        //   if (ratio >  dimensions.w /  dimensions.h) {
-        //     sceneContainer.style.transform = "translate(-50%, -50%) scale("+scaleY+")"
-        //   ;
-        //   } else {
-        //     sceneContainer.style.transform = "translate(-50%, -50%) scale("+scaleX+")"
-        //     ;
-        //   }
-        // }
-
-        // if (window.innerHeight >  dimensions.h && window.innerWidth >  dimensions.w + gutters) {
           let scaleX = window.innerWidth / ( dimensions.w + gutters);
           let scaleY = window.innerHeight /  (dimensions.h+gutters);
           let ratio = window.innerWidth / window.innerHeight;
@@ -757,8 +732,6 @@ let originalSrcdoc = `
             sceneContainer.style.transform = "translate(-50%, -50%) scale("+scaleX+")"
             ;
           }
-        // }
-
       }
 
       window.onresize = reportWindowSize;
@@ -769,3 +742,4 @@ let originalSrcdoc = `
   </script>
 </html>
 `;
+
