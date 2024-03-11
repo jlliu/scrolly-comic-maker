@@ -332,7 +332,7 @@ function getImg(event) {
     // });
 
     imageCollection.appendChild(newImg);
-    imageLibrary.push[newImg.src] = { img: newImg, file: file, type: imgType };
+    imageLibrary[newImg.src] = { img: newImg, file: file, type: imgType };
   });
 }
 
