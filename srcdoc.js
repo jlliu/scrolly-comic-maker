@@ -194,7 +194,20 @@ let originalSrcdoc = `
 
       let scrollContainer = document.querySelector("#scrollContainer");
       let frameNum = parseInt(scrollContainer.dataset.frameNum);
-      scrollContainer.style.height = ((frameNum+1)*600)+'px';
+
+
+      let setPageHeight = function(){
+        let lastFrameBuffer;
+        if (window.innerHeight < 600){
+          lastFrameBuffer = 0;
+        } else if (window.innerHeight >= 600) {
+          lastFrameBuffer =  window.innerHeight-600+100;
+        }
+        scrollContainer.style.height = ((frameNum+1)*600+lastFrameBuffer)+'px';
+
+      }
+
+      setPageHeight();
 
 
       //Track where you click on image
@@ -711,13 +724,15 @@ let originalSrcdoc = `
 
       window.onscroll = function (e) {
         scrollPos = window.scrollY;
+        console.log(scrollPos);
         changeScene(window.scrollY);
       };
 
 
 
       // For resizing canvas
-      function reportWindowSize() {
+      function resizeWindow() {
+        setPageHeight();
         let windowWidth = window.innerWidth;
         let windowHeight = window.innerHeight;
 
@@ -736,9 +751,9 @@ let originalSrcdoc = `
           }
       }
 
-      window.onresize = reportWindowSize;
+      window.onresize = resizeWindow;
 
-      reportWindowSize();
+      resizeWindow();
 
 
   </script>

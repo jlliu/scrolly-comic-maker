@@ -50,8 +50,18 @@ let dimensions = {
       let frameNum = parseInt(scrollContainer.dataset.frameNum);
       let sceneEls =  document.querySelectorAll(".sceneEl");
 
+      let setPageHeight = function(){
+        let lastFrameBuffer;
+        if (window.innerHeight < 600){
+          lastFrameBuffer = 0;
+        } else if (window.innerHeight >= 600) {
+          lastFrameBuffer =  window.innerHeight-600+100;
+        }
+        scrollContainer.style.height = ((frameNum+1)*600+lastFrameBuffer)+'px';
 
-      scrollContainer.style.height = ((frameNum+1)*600)+'px';
+      }
+
+      setPageHeight();
 
 
       // Script for animating comic
@@ -149,7 +159,8 @@ window.onscroll = function (e) {
 
 
 // For resizing canvas
-function reportWindowSize() {
+function resizeWindow() {
+  setPageHeight();
   let windowWidth = window.innerWidth;
   let windowHeight = window.innerHeight;
 
@@ -168,9 +179,9 @@ function reportWindowSize() {
     }
 }
 
-window.onresize = reportWindowSize;
+window.onresize = resizeWindow;
 
-reportWindowSize();
+resizeWindow();
 
 `;
 
