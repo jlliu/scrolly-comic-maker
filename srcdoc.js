@@ -28,9 +28,22 @@ let originalSrcdoc = `
         width: 800px;
         height: 600px;
         border: 2px dotted rgba(0, 0, 0, 0.333);
+        pointer-events:none;
+        /* z-index:0; */
       }
       #scrollContainer{
         height:9600px;
+        position:relative;
+        pointer-events:none;
+        width:100px;
+        margin:auto;
+        /* z-index:0; */
+
+      }
+      #scrollContainer .sceneEl.scrollable{
+        transform-origin: top left;
+        display: block !important;
+        opacity: 1 !important;
       }
 
       .sceneEl{
@@ -49,17 +62,27 @@ let originalSrcdoc = `
         -ms-user-drag: none;
         user-drag: none;
 
-        opacity:0;
-        display: none;
-        transition: opacity .2s ease-in, background .2s;
+
         position:absolute;
         top:0px;
         left:0px;
         cursor: grab;
         box-sizing: border-box;
+
+
+      }
+      .sceneEl:not(.scrollable){
+        opacity:0;
+        display: none;
+        transition: opacity .2s ease-in, background .2s;
         pointer-events:none;
 
       }
+
+      .sceneEl.fill:not(.scrollable){
+        object-fit: cover; /* or object-fit: contain; */
+      }
+
       pre.sceneEl{
         font-size:24px;
         margin:0px;
@@ -103,7 +126,7 @@ let originalSrcdoc = `
         max-width: 400px;
       }
 
-      .sceneEl.display{
+      .sceneEl.display, .sceneEl.scrollable{
         display:inline-block;
       }
 
@@ -135,28 +158,19 @@ let originalSrcdoc = `
         cursor: nesw-resize;
       }
 
-      .sceneEl.visible{
+      .sceneEl.visible, .sceneEl.scrollable{
         opacity:1;
         transition:  opacity .4s ease-in 0s, background .2s;
         pointer-events:all;
-      }
-
-      #parallaxTest{
-        position:absolute;
-        width:100%;
-        top:400px;
-        left:0px;
       }
 
     </style>
 
   </head>
   <body>
+    <div id="scrollContainer" data-frame-num="15"></div>
     <div id="sceneContainer"></div>
-    <div id="scrollContainer" data-frame-num="15">
-      <!-- asdf
-      <img id="parallaxTest" src="img/test.png" /> -->
-    </div>
+
   </body>
   <script>
 
@@ -185,7 +199,6 @@ let originalSrcdoc = `
         ratio: null,
         orignalPos: {x:null,y:null}
       }
-      let images = document.querySelectorAll("img");
 
       let sceneEls =  document.querySelectorAll(".sceneEl");
 
@@ -209,6 +222,16 @@ let originalSrcdoc = `
 
       setPageHeight();
 
+      let correctScale = function(num){
+        let scale = new WebKitCSSMatrix(window.getComputedStyle(sceneContainer).transform).a;
+        return num / scale;
+      }
+
+      let getScale = function(){
+        let scale = new WebKitCSSMatrix(window.getComputedStyle(sceneContainer).transform).a;
+        return scale;
+      }
+
 
       //Track where you click on image
       let clickedPos = {x: 0, y: 0};
@@ -222,12 +245,32 @@ let originalSrcdoc = `
 
           document.body.classList.add("addingText");
         }
-        if (e.data.message == "delete el"){
+        else if (e.data.message == "delete el"){
           deleteSelectedElements();
         }
+        else if (e.data.message == "toggle scroll"){
+          toggleElementScroll();
+        }
+        else if (e.data.message == "toggle fixed"){
+          toggleElementFixed();
+        }
+        else if (e.data.message == "toggle custom size"){
+          toggleElementCustom();
+        }
+        else if (e.data.message == "toggle fill size"){
+          toggleElementFill();
+        }
+        else if (e.data.message == "deselect"){
+          deselectElements();
 
+        }
+        else if (e.data.message == "scroll to"){
+          changeScene(window.scrollY, true);
+
+        }
       }
       let sendUpdatedHtmlMessage = function(){
+        console.log("send updated html")
         window.parent.postMessage({
             message: "update html",
             html: getHtmlString()
@@ -245,10 +288,7 @@ let originalSrcdoc = `
 
       let cornerMargin = 20;
 
-      let correctScale = function(num){
-        let scale = new WebKitCSSMatrix(window.getComputedStyle(sceneContainer).transform).a;
-        return num / scale;
-      }
+
 
 
 
@@ -327,7 +367,13 @@ let originalSrcdoc = `
             console.log("SETTING CONTENTEDITABLE")
             editingTextEl = el;
             el.classList.add("editingText");
-            el.focus();
+            let attemptToFocus = setInterval(function(){
+               if (el != document.activeElement){
+                el.focus();
+               } else {
+                clearInterval(attemptToFocus);
+               };
+            }, 20);
           }
         }
 
@@ -412,7 +458,6 @@ let originalSrcdoc = `
               el: thisEl,
               originalPos: thisEl.getBoundingClientRect()
           }
-          console.log(resizeInfo);
           if (bottomRightCorner(thisEl,clickedPos)) {
             currentlyResizing = true;
             resizeInfo.corner = "bottomRight";
@@ -431,6 +476,7 @@ let originalSrcdoc = `
           else {
             // Make elements draggable if we're not currently editing text
             if (!(thisEl.tagName == "PRE" && thisEl == document.activeElement)){
+
               currentlyDragging = true;
               draggingEl = thisEl;
               thisEl.classList.add('dragging');
@@ -465,8 +511,94 @@ let originalSrcdoc = `
 
       });
 
-      let deleteSelectedElements = function(){
+      let generateDataCueString = function (startFrame, endFrame) {
+        let cuesString = "[";
+        for (var i = 0; i < endFrame - startFrame + 1; i++) {
+          if (i != 0) {
+            cuesString += ",";
+          }
+          cuesString += startFrame + i;
+        }
+        cuesString += "]";
+        return cuesString;
+      };
 
+      let toggleElementScroll = function(){
+        Array.from(document.querySelectorAll('.sceneEl.selected')).forEach(function(element){
+            element.classList.add("scrollable");
+            element.setAttribute('data-ypos',scrollPos);
+            element.setAttribute('data-cues', generateDataCueString(0,frameNum));
+            if (element.classList.contains("fill")){
+              // element.style.height = JSON.parse(element.dataset.originalpos).h;
+              element.style.width = correctScale(window.innerWidth)+'px';
+              element.style.height = "auto";
+              element.style.top = JSON.parse(element.dataset.originalpos).y;
+              }
+        });
+        sendUpdatedHtmlMessage();
+      }
+
+      let toggleElementFixed = function(){
+        Array.from(document.querySelectorAll('.sceneEl.selected')).forEach(function(element){
+            element.classList.remove("scrollable");
+            element.style.transform = "";
+            element.removeAttribute('data-ypos');
+            element.setAttribute('data-cues', generateDataCueString(currentCueIndex,currentCueIndex+1));
+            if (element.classList.contains("fill")){
+              element.style.height = correctScale(window.innerHeight)+'px';
+              element.style.top = correctScale(-sceneContainer.getBoundingClientRect().top)+'px';
+            } else {
+              element.style.height = "auto";
+
+            }
+        });
+        sendUpdatedHtmlMessage();
+      }
+
+      let toggleElementCustom = function(){
+        Array.from(document.querySelectorAll('.sceneEl.selected')).forEach(function(element){
+            element.classList.remove("fill");
+            let originalpos = JSON.parse(element.dataset.originalpos);
+
+            element.style.width = originalpos.w;
+            element.style.height = "auto"
+            element.style.left = originalpos.x;
+            element.style.top = originalpos.y;
+            // element.removeAttribute('data-originalpos');
+
+        });
+        sendUpdatedHtmlMessage();
+      }
+
+
+      let toggleElementFill = function(){
+        console.log("togle fill")
+        Array.from(document.querySelectorAll('.sceneEl.selected')).forEach(function(element){
+          element.setAttribute('data-originalpos', JSON.stringify({
+            x: element.style.left,
+            y: element.style.top,
+            w: correctScale(element.getBoundingClientRect().width)+'px',
+            h: correctScale(element.getBoundingClientRect().height)+'px',
+          }));
+
+          element.classList.add("fill");
+          element.style.left = correctScale(-sceneContainer.getBoundingClientRect().left)+'px';
+
+          console.log(-sceneContainer.getBoundingClientRect().top);
+          element.style.width = correctScale(window.innerWidth)+'px';
+          if (element.classList.contains("scrollable")){
+            // element.style.height = JSON.parse(element.dataset.originalpos).h;
+            element.style.height = "auto";
+          } else {
+            element.style.top = correctScale(-sceneContainer.getBoundingClientRect().top)+'px';
+            element.style.height = correctScale(window.innerHeight)+'px';
+
+          }
+        });
+        sendUpdatedHtmlMessage();
+      }
+
+      let deleteSelectedElements = function(){
           Array.from(document.querySelectorAll('.sceneEl.selected:not(.editingText)')).forEach(function(element){
             deleteElement(element);
           });
@@ -482,12 +614,36 @@ let originalSrcdoc = `
       });
 
       let moveElement = function(e){
-        draggingEl.style.left = correctScale(e.clientX - sceneContainer.getBoundingClientRect().left -  clickedPos.x) +"px" ;
-        draggingEl.style.top = correctScale(e.clientY - sceneContainer.getBoundingClientRect().top - clickedPos.y)+"px";
+
+        // CASE 0: scrollable, and fill
+        // case 1: scrollable, no fill
+        // case 2: not scrollable, fill
+        // case 3: not scrollable, no fill
+        let scrollable = draggingEl.classList.contains("scrollable");
+        let fill = draggingEl.classList.contains("fill");
+        if (scrollable && fill){
+          draggingEl.style.transform = "none";
+          draggingEl.setAttribute('data-ypos',scrollPos);
+          draggingEl.style.top = correctScale(e.clientY - sceneContainer.getBoundingClientRect().top - clickedPos.y)+"px";
+        } else if (scrollable && !fill){
+          draggingEl.style.transform = "none";
+          draggingEl.setAttribute('data-ypos',scrollPos);
+          draggingEl.style.left = correctScale(e.clientX - sceneContainer.getBoundingClientRect().left -  clickedPos.x) +"px" ;
+          draggingEl.style.top = correctScale(e.clientY - sceneContainer.getBoundingClientRect().top - clickedPos.y)+"px";
+
+        } else if (!scrollable && fill){
+          // do nothing!
+        } else if (!scrollable && !fill){
+          draggingEl.style.left = correctScale(e.clientX - sceneContainer.getBoundingClientRect().left -  clickedPos.x) +"px" ;
+          draggingEl.style.top = correctScale(e.clientY - sceneContainer.getBoundingClientRect().top - clickedPos.y)+"px";
+
+
+        }
       }
+
       let resizeElement = function(e){
         let thisEl = resizeInfo.el;
-        thisEl.classList.remove('maxWidth');
+        thisEl.style.maxWidth = "none";
 
           let newWidth; let dy; let dx;
 
@@ -534,7 +690,6 @@ let originalSrcdoc = `
          moveElement(e);
         }
         if (currentlyResizing){
-
           resizeElement(e);
         } else {
           if (!e.target.classList.contains("sceneEl")){
@@ -546,7 +701,6 @@ let originalSrcdoc = `
       document.addEventListener('mousedown', function(e){
         //clear content editables
         if (editingTextEl && e.target != editingTextEl) {
-          console.log("sdf")
           // let editingEl = document.querySelector('p.editingText');
           editingTextEl.setAttribute('contenteditable', false);
           editingTextEl.classList.remove('editingText');
@@ -557,6 +711,14 @@ let originalSrcdoc = `
           editingTextEl = null;
         }
       })
+
+      let deselectElements = function(){
+        sendDeselectMessage();
+          sceneEls.forEach(function (sceneEl) {
+            sceneEl.classList.remove('selected');
+          });
+
+      }
       document.addEventListener('mouseup',function(e){
         // are we dragging and releasing?
         if(draggingEl){
@@ -570,11 +732,7 @@ let originalSrcdoc = `
         //Clear selected and resizing if you click outside an image
         if (!e.target.classList.contains('sceneEl')){
           removeResizeCursorsOnBody();
-          console.log('remove selected')
-          sendDeselectMessage();
-          sceneEls.forEach(function (sceneEl) {
-            sceneEl.classList.remove('selected');
-          });
+          deselectElements();
 
         }
         // stop resizing
@@ -667,7 +825,9 @@ let originalSrcdoc = `
       function changeScene(scrollPos, initialize) {
         let cueChanged = currentCueIndex !== Math.floor(scrollPos / interval);
         currentCueIndex = Math.floor(scrollPos / interval);
+        adjustScrollables(window.scrollY);
         sendCueChangeMessage();
+
         if (cueChanged){
           sendCueChangeMessage();
 
@@ -724,15 +884,32 @@ let originalSrcdoc = `
 
       window.onscroll = function (e) {
         scrollPos = window.scrollY;
-        console.log(scrollPos);
         changeScene(window.scrollY);
+
       };
 
+      function adjustScrollables(){
+           Array.from(document.querySelectorAll('.sceneEl.scrollable')).forEach(function(element){
+            let originalScrollPos = element.dataset.ypos;
+            element.style.transform = "translateY("+ (originalScrollPos-window.scrollY)+"px)";
+          });
+      }
 
+      function resizeFills(){
+        Array.from(document.querySelectorAll('.sceneEl.fill')).forEach(function(element){
+          element.style.left = correctScale(-sceneContainer.getBoundingClientRect().left)+'px';
+          element.style.top = correctScale(-sceneContainer.getBoundingClientRect().top)+'px';
+          element.style.width = correctScale(window.innerWidth)+'px';
+          if (!element.classList.contains("scrollable")){
+            element.style.height = correctScale(window.innerHeight)+'px';
+          }
+          });
+      }
 
       // For resizing canvas
       function resizeWindow() {
         setPageHeight();
+        resizeFills();
         let windowWidth = window.innerWidth;
         let windowHeight = window.innerHeight;
 
@@ -749,6 +926,15 @@ let originalSrcdoc = `
             sceneContainer.style.transform = "translate(-50%, -50%) scale("+scaleX+")"
             ;
           }
+          scrollContainer.style.width = sceneContainer.getBoundingClientRect().width+"px";
+          scrollContainer.style.marginTop = sceneContainer.getBoundingClientRect().top+"px";
+          scrollContainer.style.height = scrollContainer.getBoundingClientRect().height-sceneContainer.getBoundingClientRect().top+"px";
+
+          // Array.from(document.querySelectorAll('.sceneEl.scrollable')).forEach(function(element){
+          //   element.style.transform = "scale("+getScale()+")";
+          //   let left = element.dataset.left;
+          //   element.style.left = left*scaleX+"px";
+          // });
       }
 
       window.onresize = resizeWindow;

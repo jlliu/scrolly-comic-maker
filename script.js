@@ -57,57 +57,81 @@ window.onmessage = function (e) {
   }
 
   if (e.data.message == "selected el") {
-    console.log("selected el received");
     let thisId = e.data.id;
     let thisEl = htmlDoc.querySelector(`.sceneEl[data-id="${e.data.id}"`);
     currentElement = thisEl;
 
-    //update values in UI
-    let dataCues = JSON.parse(thisEl.dataset.cues);
-    startCueInput.value = dataCues[0];
-    endCueInput.value = dataCues[dataCues.length - 1];
-    // currentIdInput.innerHTML = thisId;
-
     if (thisEl.tagName == "IMG") {
       type = "IMG";
       toggleSettingsDisplay("image");
+      thisEl.classList.contains("fill")
+        ? (behaviorSelector.value = "Fill")
+        : (behaviorSelector.value = "Custom");
     } else if (thisEl.tagName == "PRE") {
-      // currentImgPreview.src = "";
       fontSizePicker.value = thisEl.style.fontSize.replace("px", "");
       fontSelector.value = thisEl.style.fontFamily.replaceAll(`"`, "");
       fontColorPicker.value = rgbToHex(thisEl.style.color);
       toggleSettingsDisplay("text");
     }
+    //Settings for all elements
+    thisEl.classList.contains("scrollable")
+      ? (behaviorSelector.value = "Scroll")
+      : (behaviorSelector.value = "Fixed");
+    //update values in UI
+    let dataCues = JSON.parse(thisEl.dataset.cues);
+    startCueInput.value = dataCues[0];
+    endCueInput.value = dataCues[dataCues.length - 1];
   }
   if (e.data.message == "click") {
-    console.log("get click mesage");
     if (addingText) {
       let clickedPos = e.data.clickedPos;
       addText(clickedPos.x, clickedPos.y);
-
       addingText = false;
     }
   }
   if (e.data.message == "deselected el") {
-    console.log("get deselect mesage");
     toggleSettingsDisplay("canvas");
   }
 };
 
+let arrayFromSelector = function (selector) {
+  return Array.from(document.querySelectorAll(selector));
+};
+
 let toggleSettingsDisplay = function (type) {
   if (type == "image") {
-    document.querySelector(".elementSettings").style.display = "block";
-    document.querySelector(".showForTextEl").style.display = "none";
-    document.querySelector(".showForImgEl").style.display = "block";
-    document.querySelector(".canvasSettings").style.display = "none";
+    arrayFromSelector(".elementSettings").forEach(function (el) {
+      el.style.display = "block";
+    });
+    arrayFromSelector(".showForTextEl").forEach(function (el) {
+      el.style.display = "none";
+    });
+    arrayFromSelector(".showForImgEl").forEach(function (el) {
+      el.style.display = "block";
+    });
+    arrayFromSelector(".canvasSettings").forEach(function (el) {
+      el.style.display = "none";
+    });
   } else if (type == "text") {
-    document.querySelector(".elementSettings").style.display = "block";
-    document.querySelector(".showForTextEl").style.display = "block";
-    document.querySelector(".showForImgEl").style.display = "none";
-    document.querySelector(".canvasSettings").style.display = "none";
+    arrayFromSelector(".elementSettings").forEach(function (el) {
+      el.style.display = "block";
+    });
+    arrayFromSelector(".showForTextEl").forEach(function (el) {
+      el.style.display = "block";
+    });
+    arrayFromSelector(".showForImgEl").forEach(function (el) {
+      el.style.display = "none";
+    });
+    arrayFromSelector(".canvasSettings").forEach(function (el) {
+      el.style.display = "none";
+    });
   } else if (type == "canvas") {
-    document.querySelector(".elementSettings").style.display = "none";
-    document.querySelector(".canvasSettings").style.display = "block";
+    arrayFromSelector(".elementSettings").forEach(function (el) {
+      el.style.display = "none";
+    });
+    arrayFromSelector(".canvasSettings").forEach(function (el) {
+      el.style.display = "block";
+    });
   }
 };
 
@@ -119,24 +143,10 @@ let htmlDoc = parser.parseFromString(originalSrcdoc, "text/html");
 
 previewIframe.srcdoc = originalSrcdoc;
 
-let generateDataCueString = function (startFrame, endFrame) {
-  let cuesString = "[";
-  for (var i = 0; i < endFrame - startFrame + 1; i++) {
-    if (i != 0) {
-      cuesString += ",";
-    }
-    cuesString += startFrame + i;
-  }
-  cuesString += "]";
-  return cuesString;
-};
-
 //TODO: create a wrapper for image that contains the containing div and the selection points
 let addImage = function (image, xPos, yPos) {
   let img = new Image();
   img.src = image.src;
-  // img.setAttribute("data-type", image.dataset.type);
-  img.classList.add("maxWidth");
 
   //Resize image so its not fuckin huge
   if (img.naturalWidth > previewIframe.getBoundingClientRect().width - 40) {
@@ -149,6 +159,8 @@ let addImage = function (image, xPos, yPos) {
   img.style.top = `${yPos}px`;
 
   img.classList.add("selected");
+  behaviorSelector.value = "Fixed";
+  placementSelector.value = "Custom";
   // currentImgPreview.src = img.src;
 
   addElementToScene(img);
@@ -179,7 +191,7 @@ let setupSceneEl = function (el) {
 };
 
 let clearClasses = function () {
-  Array.from(htmlDoc.querySelectorAll(".sceneEl")).forEach(function (sceneEl) {
+  arrayFromSelector(".sceneEl").forEach(function (sceneEl) {
     sceneEl.classList.remove("selected");
     sceneEl.classList.remove("display");
     sceneEl.classList.remove("visible");
@@ -195,6 +207,7 @@ let addElementToScene = function (el) {
   let sceneContainer = htmlDoc.querySelector("#sceneContainer");
   sceneContainer.appendChild(el);
 
+  console.log("updating ifarme");
   //Change preview iframe frame to the html
   updateIframeAndTimeline();
 };
@@ -223,6 +236,7 @@ document.addEventListener("keydown", function (e) {
 
 previewIframe.onload = function () {
   this.contentWindow.scrollTo(0, currentScrollPos);
+  previewIframe.contentWindow.postMessage({ message: "scroll to" });
 };
 
 //GENERAL ELEMENT STUFF
@@ -230,6 +244,7 @@ previewIframe.onload = function () {
 let deleteButton = document.querySelector("#delete");
 
 let sendDeleteMessage = function () {
+  toggleSettingsDisplay("canvas");
   previewIframe.contentWindow.postMessage({ message: "delete el" });
 };
 
@@ -351,6 +366,13 @@ document.addEventListener("mousemove", function (e) {
   }
 });
 
+document.addEventListener("click", function (e) {
+  // Deselect selected els if we click elsewhere on UI
+  if (!e.target.closest("#rightPanel") && !e.target.closest("#preview")) {
+    previewIframe.contentWindow.postMessage({ message: "deselect" });
+  }
+});
+
 document.addEventListener("mouseup", function (e) {
   if (currentlyDraggingLibraryImage) {
     let draggedImage = document.querySelector("#draggedImage");
@@ -386,9 +408,25 @@ document.addEventListener("mouseup", function (e) {
   }
 });
 
-// previewIframe.addEventListener("mouseup", function (e) {
+// PLACEMENT AND FIXED VS SCROLL
+let behaviorSelector = document.querySelector("#behaviorSelector");
+let placementSelector = document.querySelector("#placementSelector");
 
-// });
+behaviorSelector.onchange = (event) => {
+  if (event.target.value == "Scroll") {
+    previewIframe.contentWindow.postMessage({ message: "toggle scroll" });
+  } else if (event.target.value == "Fixed") {
+    previewIframe.contentWindow.postMessage({ message: "toggle fixed" });
+  }
+};
+
+placementSelector.onchange = (event) => {
+  if (event.target.value == "Custom") {
+    previewIframe.contentWindow.postMessage({ message: "toggle custom size" });
+  } else if (event.target.value == "Fill") {
+    previewIframe.contentWindow.postMessage({ message: "toggle fill size" });
+  }
+};
 
 // ADDING TEXT
 
@@ -396,15 +434,16 @@ let addTextButton = document.querySelector("#add-text");
 var fontSelector = document.getElementById("fontSelector");
 let fontSizePicker = document.getElementById("fontSize");
 let fontColorPicker = document.getElementById("fontColor");
+let textAlignmentPicker = document.getElementById("textAlignment");
 let includedFonts = [];
 let addingText = false;
 
 let currentFont = "Comic Neue";
 let currentFontSize = 24;
 let currentFontColor = "#000000";
+let currentTextAlignment = "left";
 
 function rgbToHex(color) {
-  console.log(color);
   if (color[0] == "#") {
     return color;
   }
@@ -418,23 +457,23 @@ function rgbToHex(color) {
 }
 
 let addText = function (xPos, yPos) {
-  console.log("add text called");
   const paragraph = document.createElement("pre");
   const text = document.createTextNode("");
   paragraph.appendChild(text);
   paragraph.style.fontFamily = currentFont;
   paragraph.style.fontSize = `${currentFontSize}px`;
+  paragraph.style.textAlign = currentTextAlignment;
   paragraph.style.color = currentFontColor;
   paragraph.style.left = `${xPos}px`;
   paragraph.style.top = `${yPos}px`;
   paragraph.setAttribute("contenteditable", true);
-  paragraph.focus();
-  paragraph.classList.add("maxWidth");
   paragraph.classList.add("selected");
 
   let head = htmlDoc.querySelector("head");
-  let styleHTML = fontDefinitions[currentFont];
-  head.insertAdjacentHTML("beforeend", styleHTML);
+  let style = htmlDoc.querySelector("style");
+  let styleCSS = fontDefinitions[currentFont].css;
+  style.innerHTML += styleCSS;
+  includedFonts.push(currentFont);
   setupSceneEl(paragraph);
   addElementToScene(paragraph);
   toggleSettingsDisplay("text");
@@ -452,13 +491,15 @@ fontSelector.onchange = (event) => {
   currentFont = event.target.value;
   // change selected element if exists
   if (currentElement.tagName == "PRE") {
-    console.log("changing font");
     let thisId = currentElement.dataset.id;
     let thisEl = htmlDoc.querySelector(`.sceneEl[data-id="${thisId}"`);
     thisEl.style.fontFamily = currentFont;
-    let head = htmlDoc.querySelector("head");
-    let styleHTML = fontDefinitions[currentFont];
-    head.insertAdjacentHTML("beforeend", styleHTML);
+    if (!includedFonts.includes(currentFont)) {
+      let style = htmlDoc.querySelector("style");
+      let styleCSS = fontDefinitions[currentFont].css;
+      style.innerHTML += styleCSS;
+      includedFonts.push(currentFont);
+    }
     updateIframeAndTimeline();
   }
 };
@@ -481,6 +522,16 @@ fontSizePicker.addEventListener("change", (e) => {
     let thisId = currentElement.dataset.id;
     let thisEl = htmlDoc.querySelector(`.sceneEl[data-id="${thisId}"`);
     thisEl.style.fontSize = `${currentFontSize}px`;
+    updateIframeAndTimeline();
+  }
+});
+
+textAlignmentPicker.addEventListener("change", (e) => {
+  currentTextAlignment = e.target.value;
+  if (currentElement.tagName == "PRE") {
+    let thisId = currentElement.dataset.id;
+    let thisEl = htmlDoc.querySelector(`.sceneEl[data-id="${thisId}"`);
+    thisEl.style.textAlign = currentTextAlignment;
     updateIframeAndTimeline();
   }
 });
@@ -524,7 +575,7 @@ let updateFrames = function () {
 let getZindexRange = function () {
   let highestZ = -999999999999999;
   let lowestZ = 999999999999999;
-  Array.from(htmlDoc.querySelectorAll(".sceneEl")).forEach(function (sceneEl) {
+  arrayFromSelector(".sceneEl").forEach(function (sceneEl) {
     if (parseInt(sceneEl.style.zIndex) > highestZ) {
       highestZ = parseInt(sceneEl.style.zIndex);
     }
@@ -590,13 +641,27 @@ let updatePreviewTimeline = function () {
     Array.from(thisScene.querySelectorAll(".sceneEl")).forEach(function (
       sceneEl
     ) {
-      let cues = JSON.parse(sceneEl.dataset.cues);
-      if (cues.includes(i)) {
-        sceneEl.classList.add("visible");
-        sceneEl.classList.add("display");
+      // Show scrollable iamges
+      if (sceneEl.classList.contains("scrollable")) {
+        let originalScrollPos = parseInt(sceneEl.dataset.ypos);
+        sceneEl.style.transform = "";
+        if (originalScrollPos >= i * 600 && originalScrollPos < (i + 1) * 600) {
+          sceneEl.classList.add("visible");
+          sceneEl.classList.add("display");
+        } else {
+          sceneEl.classList.remove("visible");
+          sceneEl.classList.remove("display");
+        }
       } else {
-        sceneEl.classList.remove("visible");
-        sceneEl.classList.remove("display");
+        // Show non scrollable images
+        let cues = JSON.parse(sceneEl.dataset.cues);
+        if (cues.includes(i)) {
+          sceneEl.classList.add("visible");
+          sceneEl.classList.add("display");
+        } else {
+          sceneEl.classList.remove("visible");
+          sceneEl.classList.remove("display");
+        }
       }
     });
     thisScene.classList.add("previewScene");
@@ -624,12 +689,34 @@ let updateSelectedPreviewScene = function () {
   let currentSceneWrapper = document.querySelector(
     `.sceneWrapper[data-cue="${currentCue}"]`
   );
-  Array.from(document.querySelectorAll(".sceneWrapper")).forEach(function (
-    sceneWrapper
-  ) {
+  arrayFromSelector(".sceneWrapper").forEach(function (sceneWrapper) {
     sceneWrapper.classList.remove("selected");
   });
   currentSceneWrapper.classList.add("selected");
+  // check if selected is out of view.
+  if (
+    currentSceneWrapper.getBoundingClientRect().right >
+    scenePreviewContainer.getBoundingClientRect().right
+  ) {
+    let displacement =
+      currentSceneWrapper.getBoundingClientRect().left -
+      scenePreviewContainer.getBoundingClientRect().left;
+    scenePreviewContainer.scrollTo(
+      scenePreviewContainer.scrollLeft + displacement,
+      0
+    );
+  } else if (
+    currentSceneWrapper.getBoundingClientRect().left <
+    scenePreviewContainer.getBoundingClientRect().left
+  ) {
+    let displacement =
+      currentSceneWrapper.getBoundingClientRect().right -
+      scenePreviewContainer.getBoundingClientRect().right;
+    scenePreviewContainer.scrollTo(
+      scenePreviewContainer.scrollLeft + displacement,
+      0
+    );
+  }
 };
 
 updatePreviewTimeline();
@@ -642,23 +729,39 @@ exportButton.addEventListener("click", function () {
   // let titleToFolderName = storyTitle.replace("s*", "-").replace(".");
   var zip = new JSZip();
 
-  let sceneEls = htmlDocCopy.querySelectorAll(".sceneEl");
+  let sceneEls = Array.from(htmlDocCopy.querySelectorAll(".sceneEl"));
+
   htmlDocCopy.querySelector("title").innerHTML = storyTitle;
   htmlDocCopy.querySelector("script").innerHTML = exportScript;
-  htmlDocCopy.querySelector("style").innerHTML = exportStyle;
-  var imgFolder = zip.folder("images");
-  var fontFolder = zip.folder("fonts");
+  let style = exportStyle;
+  let styleEls = htmlDocCopy.querySelectorAll("style");
+  styleEls.forEach(function (el) {
+    el.remove();
+  });
 
-  Array.from(sceneEls).forEach(function (sceneEl) {
+  let finalFonts = [];
+  let finalFontPaths = [];
+
+  sceneEls.forEach(function (sceneEl) {
     let id = sceneEl.dataset.id;
     if (sceneEl.tagName == "IMG") {
+      //Collect images
       let type = imageLibrary[sceneEl.src].type;
       let blob = imageLibrary[sceneEl.src].file;
+      var images = zip.folder("images");
 
       let fileName = `img${id}.${type}`;
       let newSrc = `images/${fileName}`;
-      imgFolder.file(fileName, blob);
+      images.file(fileName, blob);
       sceneEl.src = newSrc;
+    } else if (sceneEl.tagName == "PRE") {
+      //Collect fonts
+      let fontFamily = sceneEl.style.fontFamily.replaceAll(`"`, "");
+      if (!finalFonts.includes(fontFamily)) {
+        finalFonts.push(fontFamily);
+        finalFontPaths.push(fontDefinitions[fontFamily].url);
+        style += fontDefinitions[fontFamily].css;
+      }
     }
     sceneEl.classList.remove("visible");
     sceneEl.classList.remove("display");
@@ -666,12 +769,42 @@ exportButton.addEventListener("click", function () {
     sceneEl.classList.remove("selected");
     sceneEl.classList.remove("hover");
   });
-
+  let styleEl = document.createElement("style");
+  htmlDocCopy.querySelector("head").appendChild(styleEl);
+  htmlDocCopy.querySelector("style").innerHTML = style;
+  htmlDocCopy.querySelector("script").innerHTML = exportScript;
   zip.file("index.html", htmlDocCopy.documentElement.outerHTML);
 
-  // img.file("smile.gif", imgData, {base64: true});
-  zip.generateAsync({ type: "blob" }).then(function (content) {
-    // see FileSaver.js
-    saveAs(content, "myComic.zip");
-  });
+  let loadedCount = 0;
+
+  if (finalFontPaths.length) {
+    finalFontPaths.forEach(function (path) {
+      fetch(path) // 1) fetch the url
+        .then(function (response) {
+          if (response.status === 200 || response.status === 0) {
+            return Promise.resolve(response.blob());
+          } else {
+            return Promise.reject(new Error(response.statusText));
+          }
+        })
+        .then(
+          function success(data) {
+            zip.file(path, data);
+            loadedCount++;
+            if (loadedCount == finalFontPaths.length) {
+              zip.generateAsync({ type: "blob" }).then(function (content) {
+                saveAs(content, "myComic.zip");
+              });
+            }
+          },
+          function error(e) {
+            console.log("error");
+          }
+        );
+    });
+  } else {
+    zip.generateAsync({ type: "blob" }).then(function (content) {
+      saveAs(content, "myComic.zip");
+    });
+  }
 });

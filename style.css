@@ -1,3 +1,18 @@
+@font-face {
+  font-family: "Comic Neue";
+  src: url("fonts/ComicNeue-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Rainy Hearts";
+  src: url("fonts/rainyhearts.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Bad Comic";
+  src: url("fonts/BadComic-Regular.ttf") format("truetype");
+}
+
 body {
   display:flex;
   flex-direction:column;
@@ -324,3 +339,7 @@ pre.sceneEl.maxWidth{
   transition:  opacity .4s ease-in 0s, background .2s;
   pointer-events:all;
 }
+
+
+
+

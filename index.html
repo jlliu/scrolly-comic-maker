@@ -8,6 +8,7 @@
 	<link rel="stylesheet" href="style.css">
 	<script src="dist/FileSaver.min.js"></script>
 	<script src="dist/jszip.min.js"></script>
+	<script src="dist/jszip-utils.min.js"></script>
 
 </head>
 <body>
@@ -71,24 +72,51 @@
 
 					<label for="Background Color">Background color</label>
 					<input type="color" id="backgroundColor" name="Background Color" value="#FFFFFF" />
+					<p>later: gutter width... dimensions</p>
 
 				</div>
 
 
 				<div class="settingsGroup elementSettings">
+
 					<h2 class="showForImgEl">Image settings</h2>
+					<h2 class="showForTextEl">Text settings</h2>
+
+					<label for="Behavior">Display</label>
+					<select name="Behavior" id="behaviorSelector">
+						<option value="Fixed">Fixed</option>
+						<option value="Scroll">Scroll</option>
+					</select>
+
+
+					<div class="showForImgEl">
+						<label for="Placement">Fill page</label>
+						<select name="Placement" id="placementSelector">
+							<option value="Custom">Off</option>
+							<option value="Fill">On</option>
+						</select>
+					</div>
+
+
+
+
+
+
+
 					<!-- <img class="showForImgEl" src="" id="currentImgPreview" />
 					<p class="showForImgEl showForTextEl" >Id: <i id="currentId">0</i></p> -->
+					<br>
 					<label for="start cue">Start frame:</label>
 					<input type="number" id="startCue" name="Start cue" min="0"  max="1000" />
 						<br>
 					<label for="end Cue">End frame:</label>
 					<input type="number" id="endCue" name="Start cue" min="0" max="1000" />
 
-						<p class="showForImgEl"><i>Coming later: Filling images as backgrounds, and allowing images to scroll parallax-style...</i></p>
+
 					<!-- Font related settings -->
 					<div class="showForTextEl">
-						<h3>Text settings</h3>
+
+
 						<label for="fonts">Choose a font:</label>
 
 						<select name="cars" id="fontSelector">
@@ -102,6 +130,16 @@
 						<br>
 						<label for="end Cue">Font size</label>
 						<input type="number" id="fontSize" name="Font size" min="8" max="400" value="24" />
+
+						<br>
+						<label for="text alignment">Text alignment</label>
+
+						<select name="text alignment" id="textAlignment">
+							<option value="left">Left</option>
+							<option value="center">Center</option>
+							<option value="right">Right</option>
+						</select>
+
 					</div>
 
 					<button id="sendForward" >Bring to front</button><br>
