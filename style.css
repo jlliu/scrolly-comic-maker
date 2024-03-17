@@ -30,13 +30,23 @@ header{
   height:60px;
   display:flex;
   justify-content:space-between;
+  align-items:center;
 }
 header h1 {
   font-size:20px;
 }
+header .buttons{
+  gap:24px;
+  align-items:center;
+}
+header .buttons button{
+  padding:12px 24px;
+  margin-left: 8px;
+}
 #export{
   margin: 8px;
   width: 120px;
+  height: 48px;
 
 }
 .editor {
@@ -45,6 +55,8 @@ header h1 {
   flex-direction:row;
   /* gap:16px; */
 }
+
+
 
 #leftPanel {
   flex-basis: 64px;
@@ -57,7 +69,7 @@ header h1 {
   margin-right:16px;
   padding:0px;
 
-  overflow:scroll;
+  overflow:visible;
   display:flex;
   flex-direction: column;
   gap:24px;
@@ -76,7 +88,6 @@ height:60px;
   flex-shrink: 0;
   margin:24px 0px;
   background: white;
-  border:2px solid grey;
   border-radius:16px;
   display:none;
   flex-direction:column;
@@ -95,24 +106,36 @@ height:60px;
 .settingsGroup.canvasSettings{
   display:block;
 }
-#rightPanel {
-  background: white;
-  border:2px solid grey;
-  border-radius:16px;
-  flex-basis: 200px;
-  flex-grow: 0;
-  flex-shrink: 0;
+#rightPanelWrapper{
   margin:24px;
   margin-left:0px;
+  flex-basis: 240px;
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+#rightPanel {
+  background: white;
   padding:24px;
   overflow:scroll;
   height: calc(100vh - 162px);
 }
 
+#iframeContainer{
+  height: 100%;
+  width: 100%;
+}
+.windowBar{
+  padding: 12px 24px;
+  display: flex;
+  height: 20px;
+  background: rgb(244, 244, 244);
+}
 #preview{
+
+  border:0px;
   /* height:600px;
   width:800px; */
-  height:100%;
+  height: calc(100% - 44px);
   width:100%;
   overscroll-behavior: contain;
 
@@ -129,8 +152,18 @@ height:60px;
   display:flex;
   flex-direction:column;
   margin:24px;
+  gap:24px;
 }
 
+.fullPreviewContainer{
+  display:none;
+  height:100%;
+}
+#fullPreview{
+  border: none;
+  height:100%;
+  width:100%;
+}
 #image-upload{
   display:none;
 }
@@ -201,7 +234,7 @@ iframe.inactive{
   gap:8px;
 
 }
-.buttons{
+.timelineButtons{
   display:flex;
   flex-direction:column;
   gap:8px;
@@ -212,12 +245,51 @@ iframe.inactive{
 }
 
 #scenePreviewContainer {
-  height: 60px;
+  height: 88px;
   overflow: scroll;
   overflow-y: hidden;
   width: calc(100vw - 478px);
-  border: 1px solid black;
+  /* position:relative; */
 
+}
+
+.timeline{
+  position:relative;
+}
+.timeline-gradient-l, .timeline-gradient-r{
+  content: ' ';
+  width: 16px;
+  height: 88px;
+  position: absolute;
+  display: block;
+  z-index: 1;
+  opacity:0;
+  pointer-events:none;
+}
+
+.timeline-gradient-l{
+
+  background: rgb(255,255,255);
+  background: -moz-linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+  background: -webkit-linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#ffffff",endColorstr="#ffffff",GradientType=1); */
+  pointer-events:none;
+}
+.timeline-gradient-r{
+  top:0px;
+  right:0px;
+  background:yellow;
+  opacity:0;
+  background: rgb(255,255,255);
+background: -moz-linear-gradient(-90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+background: -webkit-linear-gradient(-90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+background: linear-gradient(-90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#ffffff",endColorstr="#ffffff",GradientType=1);
+}
+
+.timeline-gradient-l.show, .timeline-gradient-r.show{
+  opacity:1;
 }
 
 #scenePreviewContainer.libraryPanelOpen {
@@ -234,11 +306,21 @@ iframe.inactive{
 .sceneWrapper{
   display:inline-block;
   width:80px;
-  height:60px;
+  height:88px;
   border:2px solid rgba(0, 0, 0, 0.148);
+  box-sizing:border-box;
+  margin-right:4px;
+  cursor:pointer;
+}
+.sceneWrapper .frameNum{
+  background: #f5f5f5;
+  width: 100%;
+  text-align: center;
+  padding: 4px 0px;
+  font-size: 14px;
 }
 .sceneWrapper.selected{
-  box-sizing:border-box;
+
   border:2px solid blue;
 }
 .sceneContainer {
@@ -341,5 +423,507 @@ pre.sceneEl.maxWidth{
 }
 
 
+.pixel-corners-12,
+.pixel-corners--wrapper-12 {
+  clip-path: polygon(0px calc(100% - 18px),
+    2px calc(100% - 18px),
+    2px calc(100% - 16px),
+    2px calc(100% - 12px),
+    4px calc(100% - 12px),
+    4px calc(100% - 10px),
+    6px calc(100% - 10px),
+    6px calc(100% - 8px),
+    8px calc(100% - 6px),
+    10px calc(100% - 6px),
+    10px calc(100% - 4px),
+    12px calc(100% - 4px),
+    12px calc(100% - 2px),
+    16px calc(100% - 2px),
+    18px calc(100% - 2px),
+    18px 100%,
+    calc(100% - 18px) 100%,
+    calc(100% - 18px) calc(100% - 2px),
+    calc(100% - 16px) calc(100% - 2px),
+    calc(100% - 12px) calc(100% - 2px),
+    calc(100% - 12px) calc(100% - 4px),
+    calc(100% - 10px) calc(100% - 4px),
+    calc(100% - 10px) calc(100% - 6px),
+    calc(100% - 8px) calc(100% - 6px),
+    calc(100% - 6px) calc(100% - 8px),
+    calc(100% - 6px) calc(100% - 10px),
+    calc(100% - 4px) calc(100% - 10px),
+    calc(100% - 4px) calc(100% - 12px),
+    calc(100% - 2px) calc(100% - 12px),
+    calc(100% - 2px) calc(100% - 16px),
+    calc(100% - 2px) calc(100% - 18px),
+    100% calc(100% - 18px),
+    100% 18px,
+    calc(100% - 2px) 18px,
+    calc(100% - 2px) 16px,
+    calc(100% - 2px) 12px,
+    calc(100% - 4px) 12px,
+    calc(100% - 4px) 10px,
+    calc(100% - 6px) 10px,
+    calc(100% - 6px) 8px,
+    calc(100% - 8px) 6px,
+    calc(100% - 10px) 6px,
+    calc(100% - 10px) 4px,
+    calc(100% - 12px) 4px,
+    calc(100% - 12px) 2px,
+    calc(100% - 16px) 2px,
+    calc(100% - 18px) 2px,
+    calc(100% - 18px) 0px,
+    18px 0px,
+    18px 2px,
+    16px 2px,
+    12px 2px,
+    12px 4px,
+    10px 4px,
+    10px 6px,
+    8px 6px,
+    6px 8px,
+    6px 10px,
+    4px 10px,
+    4px 12px,
+    2px 12px,
+    2px 16px,
+    2px 18px,
+    0px 18px);
+  position: relative;
+}
+.pixel-corners-12 {
+  border: 2px solid transparent;
+}
+.pixel-corners--wrapper-12 {
+  width: fit-content;
+  height: fit-content;
+}
+.pixel-corners--wrapper-12 .pixel-corners-12 {
+  display: block;
+  clip-path: polygon(2px 18px,
+    4px 18px,
+    4px 16px,
+    4px 12px,
+    6px 12px,
+    6px 10px,
+    8px 10px,
+    8px 8px,
+    10px 8px,
+    10px 6px,
+    12px 6px,
+    12px 4px,
+    16px 4px,
+    18px 4px,
+    18px 2px,
+    calc(100% - 18px) 2px,
+    calc(100% - 18px) 4px,
+    calc(100% - 16px) 4px,
+    calc(100% - 12px) 4px,
+    calc(100% - 12px) 6px,
+    calc(100% - 10px) 6px,
+    calc(100% - 10px) 8px,
+    calc(100% - 8px) 8px,
+    calc(100% - 8px) 10px,
+    calc(100% - 6px) 10px,
+    calc(100% - 6px) 12px,
+    calc(100% - 4px) 12px,
+    calc(100% - 4px) 16px,
+    calc(100% - 4px) 18px,
+    calc(100% - 2px) 18px,
+    calc(100% - 2px) calc(100% - 18px),
+    calc(100% - 4px) calc(100% - 18px),
+    calc(100% - 4px) calc(100% - 16px),
+    calc(100% - 4px) calc(100% - 12px),
+    calc(100% - 6px) calc(100% - 12px),
+    calc(100% - 6px) calc(100% - 10px),
+    calc(100% - 8px) calc(100% - 10px),
+    calc(100% - 8px) calc(100% - 8px),
+    calc(100% - 10px) calc(100% - 8px),
+    calc(100% - 10px) calc(100% - 6px),
+    calc(100% - 12px) calc(100% - 6px),
+    calc(100% - 12px) calc(100% - 4px),
+    calc(100% - 16px) calc(100% - 4px),
+    calc(100% - 18px) calc(100% - 4px),
+    calc(100% - 18px) calc(100% - 2px),
+    18px calc(100% - 2px),
+    18px calc(100% - 4px),
+    16px calc(100% - 4px),
+    12px calc(100% - 4px),
+    12px calc(100% - 6px),
+    10px calc(100% - 6px),
+    10px calc(100% - 8px),
+    8px calc(100% - 8px),
+    8px calc(100% - 10px),
+    6px calc(100% - 10px),
+    6px calc(100% - 12px),
+    4px calc(100% - 12px),
+    4px calc(100% - 16px),
+    4px calc(100% - 18px),
+    2px calc(100% - 18px));
+}
+.pixel-corners-12::after,
+.pixel-corners--wrapper-12::after {
+  content: "";
+  position: absolute;
+  clip-path: polygon(0px calc(100% - 18px),
+    2px calc(100% - 18px),
+    2px calc(100% - 16px),
+    2px calc(100% - 12px),
+    4px calc(100% - 12px),
+    4px calc(100% - 10px),
+    6px calc(100% - 10px),
+    6px calc(100% - 8px),
+    8px calc(100% - 6px),
+    10px calc(100% - 6px),
+    10px calc(100% - 4px),
+    12px calc(100% - 4px),
+    12px calc(100% - 2px),
+    16px calc(100% - 2px),
+    18px calc(100% - 2px),
+    18px 100%,
+    calc(100% - 18px) 100%,
+    calc(100% - 18px) calc(100% - 2px),
+    calc(100% - 16px) calc(100% - 2px),
+    calc(100% - 12px) calc(100% - 2px),
+    calc(100% - 12px) calc(100% - 4px),
+    calc(100% - 10px) calc(100% - 4px),
+    calc(100% - 10px) calc(100% - 6px),
+    calc(100% - 8px) calc(100% - 6px),
+    calc(100% - 6px) calc(100% - 8px),
+    calc(100% - 6px) calc(100% - 10px),
+    calc(100% - 4px) calc(100% - 10px),
+    calc(100% - 4px) calc(100% - 12px),
+    calc(100% - 2px) calc(100% - 12px),
+    calc(100% - 2px) calc(100% - 16px),
+    calc(100% - 2px) calc(100% - 18px),
+    100% calc(100% - 18px),
+    100% 18px,
+    calc(100% - 2px) 18px,
+    calc(100% - 2px) 16px,
+    calc(100% - 2px) 12px,
+    calc(100% - 4px) 12px,
+    calc(100% - 4px) 10px,
+    calc(100% - 6px) 10px,
+    calc(100% - 6px) 8px,
+    calc(100% - 8px) 6px,
+    calc(100% - 10px) 6px,
+    calc(100% - 10px) 4px,
+    calc(100% - 12px) 4px,
+    calc(100% - 12px) 2px,
+    calc(100% - 16px) 2px,
+    calc(100% - 18px) 2px,
+    calc(100% - 18px) 0px,
+    18px 0px,
+    18px 2px,
+    16px 2px,
+    12px 2px,
+    12px 4px,
+    10px 4px,
+    10px 6px,
+    8px 6px,
+    6px 8px,
+    6px 10px,
+    4px 10px,
+    4px 12px,
+    2px 12px,
+    2px 16px,
+    2px 18px,
+    0px 18px,
+    0px 50%,
+    2px 50%,
+    2px 18px,
+    4px 18px,
+    4px 16px,
+    4px 12px,
+    6px 12px,
+    6px 10px,
+    8px 10px,
+    8px 8px,
+    10px 8px,
+    10px 6px,
+    12px 6px,
+    12px 4px,
+    16px 4px,
+    18px 4px,
+    18px 2px,
+    calc(100% - 18px) 2px,
+    calc(100% - 18px) 4px,
+    calc(100% - 16px) 4px,
+    calc(100% - 12px) 4px,
+    calc(100% - 12px) 6px,
+    calc(100% - 10px) 6px,
+    calc(100% - 10px) 8px,
+    calc(100% - 8px) 8px,
+    calc(100% - 8px) 10px,
+    calc(100% - 6px) 10px,
+    calc(100% - 6px) 12px,
+    calc(100% - 4px) 12px,
+    calc(100% - 4px) 16px,
+    calc(100% - 4px) 18px,
+    calc(100% - 2px) 18px,
+    calc(100% - 2px) calc(100% - 18px),
+    calc(100% - 4px) calc(100% - 18px),
+    calc(100% - 4px) calc(100% - 16px),
+    calc(100% - 4px) calc(100% - 12px),
+    calc(100% - 6px) calc(100% - 12px),
+    calc(100% - 6px) calc(100% - 10px),
+    calc(100% - 8px) calc(100% - 10px),
+    calc(100% - 8px) calc(100% - 8px),
+    calc(100% - 10px) calc(100% - 8px),
+    calc(100% - 10px) calc(100% - 6px),
+    calc(100% - 12px) calc(100% - 6px),
+    calc(100% - 12px) calc(100% - 4px),
+    calc(100% - 16px) calc(100% - 4px),
+    calc(100% - 18px) calc(100% - 4px),
+    calc(100% - 18px) calc(100% - 2px),
+    18px calc(100% - 2px),
+    18px calc(100% - 4px),
+    16px calc(100% - 4px),
+    12px calc(100% - 4px),
+    12px calc(100% - 6px),
+    10px calc(100% - 6px),
+    10px calc(100% - 8px),
+    8px calc(100% - 8px),
+    8px calc(100% - 10px),
+    6px calc(100% - 10px),
+    6px calc(100% - 12px),
+    4px calc(100% - 12px),
+    4px calc(100% - 16px),
+    4px calc(100% - 18px),
+    2px calc(100% - 18px),
+    2px 50%,
+    0px 50%);
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #000000;
+  display: block;
+  pointer-events: none;
+}
+.pixel-corners-12::after {
+  margin: -2px;
+}
 
+
+.pixel-corners-4,
+.pixel-corners--wrapper-4 {
+  clip-path: polygon(0px calc(100% - 4px),
+    2px calc(100% - 4px),
+    2px calc(100% - 2px),
+    4px calc(100% - 2px),
+    4px 100%,
+    calc(100% - 4px) 100%,
+    calc(100% - 4px) calc(100% - 2px),
+    calc(100% - 2px) calc(100% - 2px),
+    calc(100% - 2px) calc(100% - 4px),
+    100% calc(100% - 4px),
+    100% 4px,
+    calc(100% - 2px) 4px,
+    calc(100% - 2px) 2px,
+    calc(100% - 4px) 2px,
+    calc(100% - 4px) 0px,
+    4px 0px,
+    4px 2px,
+    2px 2px,
+    2px 4px,
+    0px 4px);
+  position: relative;
+}
+.pixel-corners-4 {
+  border: 2px solid transparent;
+}
+.pixel-corners--wrapper-4 {
+  width: fit-content;
+  height: fit-content;
+}
+.pixel-corners--wrapper-4 .pixel-corners-4 {
+  display: block;
+  clip-path: polygon(2px 4px,
+    4px 4px,
+    4px 2px,
+    calc(100% - 4px) 2px,
+    calc(100% - 4px) 4px,
+    calc(100% - 2px) 4px,
+    calc(100% - 2px) calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 2px),
+    4px calc(100% - 2px),
+    4px calc(100% - 4px),
+    2px calc(100% - 4px));
+}
+.pixel-corners-4::after,
+.pixel-corners--wrapper-4::after {
+  content: "";
+  position: absolute;
+  clip-path: polygon(0px calc(100% - 4px),
+    2px calc(100% - 4px),
+    2px calc(100% - 2px),
+    4px calc(100% - 2px),
+    4px 100%,
+    calc(100% - 4px) 100%,
+    calc(100% - 4px) calc(100% - 2px),
+    calc(100% - 2px) calc(100% - 2px),
+    calc(100% - 2px) calc(100% - 4px),
+    100% calc(100% - 4px),
+    100% 4px,
+    calc(100% - 2px) 4px,
+    calc(100% - 2px) 2px,
+    calc(100% - 4px) 2px,
+    calc(100% - 4px) 0px,
+    4px 0px,
+    4px 2px,
+    2px 2px,
+    2px 4px,
+    0px 4px,
+    0px 50%,
+    2px 50%,
+    2px 4px,
+    4px 4px,
+    4px 2px,
+    calc(100% - 4px) 2px,
+    calc(100% - 4px) 4px,
+    calc(100% - 2px) 4px,
+    calc(100% - 2px) calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 2px),
+    4px calc(100% - 2px),
+    4px calc(100% - 4px),
+    2px calc(100% - 4px),
+    2px 50%,
+    0px 50%);
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #000000;
+  display: block;
+  pointer-events: none;
+}
+.pixel-corners-4::after {
+  margin: -2px;
+}
+
+
+
+
+.pixel-corners-4-selected ,
+.pixel-corners--wrapper-4-selected {
+  clip-path: polygon(0px calc(100% - 4px),
+    2px calc(100% - 4px),
+    2px calc(100% - 2px),
+    4px calc(100% - 2px),
+    4px 100%,
+    calc(100% - 4px) 100%,
+    calc(100% - 4px) calc(100% - 2px),
+    calc(100% - 2px) calc(100% - 2px),
+    calc(100% - 2px) calc(100% - 4px),
+    100% calc(100% - 4px),
+    100% 4px,
+    calc(100% - 2px) 4px,
+    calc(100% - 2px) 2px,
+    calc(100% - 4px) 2px,
+    calc(100% - 4px) 0px,
+    4px 0px,
+    4px 2px,
+    2px 2px,
+    2px 4px,
+    0px 4px);
+  position: relative;
+}
+.pixel-corners-4-selected {
+  border: 4px solid transparent;
+}
+.pixel-corners--wrapper-4-selected {
+  width: fit-content;
+  height: fit-content;
+}
+.pixel-corners--wrapper-4-selected .pixel-corners-4-selected {
+  display: block;
+  clip-path: polygon(4px 6px,
+    6px 6px,
+    6px 4px,
+    calc(100% - 6px) 4px,
+    calc(100% - 6px) 6px,
+    calc(100% - 4px) 6px,
+    calc(100% - 4px) calc(100% - 6px),
+    calc(100% - 6px) calc(100% - 6px),
+    calc(100% - 6px) calc(100% - 4px),
+    6px calc(100% - 4px),
+    6px calc(100% - 6px),
+    4px calc(100% - 6px));
+}
+.pixel-corners-4-selected::after,
+.pixel-corners--wrapper-4-selected::after {
+  content: "";
+  position: absolute;
+  clip-path: polygon(0px calc(100% - 4px),
+    2px calc(100% - 4px),
+    2px calc(100% - 2px),
+    4px calc(100% - 2px),
+    4px 100%,
+    calc(100% - 4px) 100%,
+    calc(100% - 4px) calc(100% - 2px),
+    calc(100% - 2px) calc(100% - 2px),
+    calc(100% - 2px) calc(100% - 4px),
+    100% calc(100% - 4px),
+    100% 4px,
+    calc(100% - 2px) 4px,
+    calc(100% - 2px) 2px,
+    calc(100% - 4px) 2px,
+    calc(100% - 4px) 0px,
+    4px 0px,
+    4px 2px,
+    2px 2px,
+    2px 4px,
+    0px 4px,
+    0px 50%,
+    4px 50%,
+    4px 6px,
+    6px 6px,
+    6px 4px,
+    calc(100% - 6px) 4px,
+    calc(100% - 6px) 6px,
+    calc(100% - 4px) 6px,
+    calc(100% - 4px) calc(100% - 6px),
+    calc(100% - 6px) calc(100% - 6px),
+    calc(100% - 6px) calc(100% - 4px),
+    6px calc(100% - 4px),
+    6px calc(100% - 6px),
+    4px calc(100% - 6px),
+    4px 50%,
+    0px 50%);
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ff0095;
+  display: block;
+  pointer-events: none;
+}
+.pixel-corners-4-selected::after {
+  margin: -4px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+button{
+  transform: scale(1);
+  transition: .1s transform ease;
+}
+button:hover{
+  /* transform: scale(1.1); */
+}
+button:active{
+  transform: scale(.9);
+}
 

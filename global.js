@@ -192,10 +192,8 @@ let dimensions = {
   };
 
   function adjustScrollables(){
-    console.log("adjusting scrollable called");
        Array.from(document.querySelectorAll('.sceneEl.scrollable')).forEach(function(element){
         let originalScrollPos = element.dataset.ypos;
-        console.log("ADJUSTING SCROLLABLE");
         element.style.transform = "translateY("+ (originalScrollPos-window.scrollY)+"px)";
       });
   }

@@ -4,9 +4,11 @@ var parser = new DOMParser();
 
 let numObjects = 0;
 
-let cueCount = document.querySelector("#cueCount");
+// let cueCount = document.querySelector("#cueCount");
 
-let currentCue = parseInt(cueCount.innerHTML);
+// let currentCue = parseInt(cueCount.innerHTML);
+
+let currentCue = 0;
 
 let currentElement = null;
 let startCueInput = document.querySelector("#startCue");
@@ -44,7 +46,7 @@ window.onmessage = function (e) {
 
   if (e.data.message == "cue change") {
     currentCue = e.data.cueCount;
-    cueCount.innerHTML = currentCue;
+    // cueCount.innerHTML = currentCue;
     currentScrollPos = e.data.scrollPos;
     updateSelectedPreviewScene();
 
@@ -306,49 +308,64 @@ backgroundColorPicker.addEventListener("change", (e) => {
   updateIframeAndTimeline();
 });
 
+let acceptedImgTypes = ["png", "jpeg", "jpg", "gif", "webp", "heic"];
+
 function getImg(event) {
   const files = event.target.files; // 0 = get the first file
   let displacement = 0;
+  let fileTypeError = false;
   Array.from(files).forEach(function (file) {
     let url = window.URL.createObjectURL(file);
     let imgType = file.type.split("/")[1];
+    if (imgType == "svg+xml") {
+      imgType = "svg";
+    }
+    if (!acceptedImgTypes.includes(imgType.toLowerCase())) {
+      fileTypeError = true;
+    } else {
+      let newImg = new Image();
+      newImg.src = url;
+      newImg.classList.add("imageLibraryPreview");
+      //Add images onto screen
 
-    let newImg = new Image();
-    newImg.src = url;
-    newImg.classList.add("imageLibraryPreview");
-    //Add images onto screen
+      // newImg.addEventListener("load", function () {
+      //   addImage(
+      //     url,
+      //     canvasWidth / 2 - newImg.naturalWidth / 2 + displacement,
+      //     canvasHeight / 2 - newImg.naturalHeight / 2 + displacement
+      //   );
+      //   displacement += 20;
+      // });
 
-    // newImg.addEventListener("load", function () {
-    //   addImage(
-    //     url,
-    //     canvasWidth / 2 - newImg.naturalWidth / 2 + displacement,
-    //     canvasHeight / 2 - newImg.naturalHeight / 2 + displacement
-    //   );
-    //   displacement += 20;
-    // });
+      newImg.addEventListener("mousedown", function (e) {
+        let draggedImage = new Image();
+        draggedImage.src = newImg.src;
+        draggedImage.id = "draggedImage";
+        document.body.appendChild(draggedImage);
+        draggedImage.style.left = `${e.clientX - newImg.naturalWidth / 2}px`;
+        draggedImage.style.top = `${e.clientY - newImg.naturalHeight / 2}px`;
+        currentlyDraggingLibraryImage = true;
+      });
+      // newImg.addEventListener("click", function (e) {
+      //   console.log("hi");
+      //   addImage(
+      //     url,
+      //     canvasWidth / 2 - newImg.naturalWidth / 2 + displacement,
+      //     canvasHeight / 2 - newImg.naturalHeight / 2 + displacement
+      //   );
+      //   displacement += 20;
+      // });
 
-    newImg.addEventListener("mousedown", function (e) {
-      let draggedImage = new Image();
-      draggedImage.src = newImg.src;
-      draggedImage.id = "draggedImage";
-      document.body.appendChild(draggedImage);
-      draggedImage.style.left = `${e.clientX - newImg.naturalWidth / 2}px`;
-      draggedImage.style.top = `${e.clientY - newImg.naturalHeight / 2}px`;
-      currentlyDraggingLibraryImage = true;
-    });
-    // newImg.addEventListener("click", function (e) {
-    //   console.log("hi");
-    //   addImage(
-    //     url,
-    //     canvasWidth / 2 - newImg.naturalWidth / 2 + displacement,
-    //     canvasHeight / 2 - newImg.naturalHeight / 2 + displacement
-    //   );
-    //   displacement += 20;
-    // });
-
-    imageCollection.appendChild(newImg);
-    imageLibrary[newImg.src] = { img: newImg, file: file, type: imgType };
+      imageCollection.appendChild(newImg);
+      imageLibrary[newImg.src] = { img: newImg, file: file, type: imgType };
+    }
   });
+  // Should we raise an alert?
+  if (fileTypeError) {
+    window.alert(
+      "oops! please upload one of the following accepted file types: <br> .png, .jpeg, .jpg, .gif, .webp"
+    );
+  }
 }
 
 inputImg.addEventListener("change", getImg);
@@ -389,14 +406,14 @@ document.addEventListener("mouseup", function (e) {
       x:
         correctScale(
           e.clientX -
-            previewIframe.offsetLeft -
+            previewIframe.getBoundingClientRect().left -
             sceneContainer.getBoundingClientRect().left
         ) -
         draggedImage.getBoundingClientRect().width / 2,
       y:
         correctScale(
           e.clientY -
-            previewIframe.offsetTop -
+            previewIframe.getBoundingClientRect().top -
             sceneContainer.getBoundingClientRect().top
         ) -
         draggedImage.getBoundingClientRect().height / 2,
@@ -667,7 +684,12 @@ let updatePreviewTimeline = function () {
     thisScene.classList.add("previewScene");
     const sceneWrapper = document.createElement("div");
     sceneWrapper.classList.add("sceneWrapper");
+    sceneWrapper.classList.add("pixel-corners-4");
     sceneWrapper.setAttribute("data-cue", i);
+
+    const frameNumDiv = document.createElement("div");
+    frameNumDiv.innerHTML = i;
+    frameNumDiv.classList.add("frameNum");
 
     thisScene.style.backgroundColor = currentBackgroundColor;
 
@@ -678,7 +700,7 @@ let updatePreviewTimeline = function () {
       let cue = parseInt(e.target.dataset.cue);
       previewIframe.contentWindow.scrollTo(0, frameNumToHeight(cue - 1));
     });
-
+    sceneWrapper.appendChild(frameNumDiv);
     sceneWrapper.appendChild(thisScene);
 
     sceneWrapperContainer.appendChild(sceneWrapper);
@@ -691,8 +713,10 @@ let updateSelectedPreviewScene = function () {
   );
   arrayFromSelector(".sceneWrapper").forEach(function (sceneWrapper) {
     sceneWrapper.classList.remove("selected");
+    sceneWrapper.classList.remove("pixel-corners-4-selected");
   });
   currentSceneWrapper.classList.add("selected");
+  currentSceneWrapper.classList.add("pixel-corners-4-selected");
   // check if selected is out of view.
   if (
     currentSceneWrapper.getBoundingClientRect().right >
@@ -717,16 +741,40 @@ let updateSelectedPreviewScene = function () {
       0
     );
   }
+  // Logic to hide gradients
+  if (scenePreviewContainer.scrollLeft > 0) {
+    document.querySelector(".timeline-gradient-l").classList.add("show");
+  } else {
+    document.querySelector(".timeline-gradient-l").classList.remove("show");
+  }
+  if (
+    scenePreviewContainer.scrollLeft + scenePreviewContainer.clientWidth ==
+    scenePreviewContainer.scrollWidth
+  ) {
+    document.querySelector(".timeline-gradient-r").classList.remove("show");
+  } else {
+    document.querySelector(".timeline-gradient-r").classList.add("show");
+  }
 };
 
 updatePreviewTimeline();
 
+let generatePreviewHTML = function () {
+  let htmlDocCopy = htmlDoc.cloneNode(true);
+  let styleToRemove = htmlDocCopy.querySelector("style[data-id='editor']");
+  styleToRemove.remove();
+  let styleEl = document.createElement("style");
+  htmlDocCopy.querySelector("head").appendChild(styleEl);
+  htmlDocCopy.querySelector("style").innerHTML = exportStyle;
+  htmlDocCopy.querySelector("script").innerHTML = exportScript;
+  return htmlDocCopy;
+};
+
 // JS Zip stuff
-let exportButton = document.querySelector("#export");
+let exportButton = document.querySelector("#exportButton");
 exportButton.addEventListener("click", function () {
   let htmlDocCopy = htmlDoc.cloneNode(true);
   let storyTitle = document.querySelector("#title").value;
-  // let titleToFolderName = storyTitle.replace("s*", "-").replace(".");
   var zip = new JSZip();
 
   let sceneEls = Array.from(htmlDocCopy.querySelectorAll(".sceneEl"));
@@ -806,5 +854,25 @@ exportButton.addEventListener("click", function () {
     zip.generateAsync({ type: "blob" }).then(function (content) {
       saveAs(content, "myComic.zip");
     });
+  }
+});
+
+// preview
+let previewButton = document.querySelector("#previewButton");
+let fullPreviewContainer = document.querySelector(".fullPreviewContainer");
+let fullPreviewIframe = document.querySelector("#fullPreview");
+let editor = document.querySelector(".editor");
+let fullPreviewOpen = false;
+previewButton.addEventListener("click", function () {
+  fullPreviewOpen = !fullPreviewOpen;
+  if (fullPreviewOpen) {
+    fullPreviewContainer.style.display = "flex";
+    editor.style.display = "none";
+    previewButton.innerHTML = "Back to Editing";
+    fullPreviewIframe.srcdoc = generatePreviewHTML().documentElement.outerHTML;
+  } else {
+    fullPreviewContainer.style.display = "none";
+    editor.style.display = "flex";
+    previewButton.innerHTML = "Preview";
   }
 });

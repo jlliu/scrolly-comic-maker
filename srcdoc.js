@@ -2,7 +2,7 @@ let originalSrcdoc = `
 <html>
   <head>
     <title>My Comic</title>
-    <style>
+    <style data-id="editor">
       body {
         margin:0px;
         -webkit-font-smoothing: antialiased;
@@ -362,9 +362,7 @@ let originalSrcdoc = `
       sceneEls.forEach(function(el){
 
         if (el.tagName == "PRE"){
-          console.log("TAG NAME IS PRE")
           if (el.getAttribute('contenteditable') == "true"){
-            console.log("SETTING CONTENTEDITABLE")
             editingTextEl = el;
             el.classList.add("editingText");
             let attemptToFocus = setInterval(function(){
@@ -379,7 +377,6 @@ let originalSrcdoc = `
 
         el.addEventListener("input", function(e){
           let thisEl = e.target;
-          console.log("SETTING ADDING TEXT TO FALSE")
           document.body.classList.remove("addingText");
           sendUpdatedHtmlMessage();
         });
@@ -428,7 +425,6 @@ let originalSrcdoc = `
 
         el.addEventListener("mousedown",function(e){
 
-            console.log("you mousedown on me");
             let thisEl =e.target;
 
             clickedPos = {
@@ -443,7 +439,6 @@ let originalSrcdoc = `
               sceneEl.classList.remove('selected');
             });
             e.target.classList.add('selected');
-            console.log("i'm selecting something")
             sendSelectedElMessage(e);
 
 
@@ -796,21 +791,17 @@ let originalSrcdoc = `
       let prevSceneEls = [];
 
       let sendCueChangeMessage = function(){
-        console.log("sending cue change");
-        console.log(currentCueIndex);
         window.parent.postMessage({
               message: "cue change",
               cueCount: currentCueIndex,
               scrollPos: scrollPos
-        }); //inside the iframe
+        });
       }
 
       let sendSelectedElMessage = function(e){
         window.parent.postMessage({
             message: "selected el",
-            id: e.target.dataset.id,
-            // highestZindex: highestZindex,
-            // lowestZindex: lowestZindex
+            id: e.target.dataset.id
         })
       }
 
