@@ -779,6 +779,7 @@ let generatePreviewHTML = function () {
   styleToRemove.remove();
   let styleEl = htmlDocCopy.querySelector("style[data-id='fonts']");
   styleEl.innerHTML += exportStyle;
+  htmlDocCopy.querySelector("script").innerHTML = exportScript;
   return htmlDocCopy;
 };
 
