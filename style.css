@@ -422,6 +422,19 @@ pre.sceneEl.maxWidth{
   pointer-events:all;
 }
 
+button{
+  transform: scale(1);
+  transition: .1s transform ease;
+}
+button:hover{
+  /* transform: scale(1.1); */
+}
+button:active{
+  transform: scale(.9);
+}
+
+
+
 
 .pixel-corners-12,
 .pixel-corners--wrapper-12 {
@@ -903,27 +916,5 @@ pre.sceneEl.maxWidth{
 }
 .pixel-corners-4-selected::after {
   margin: -4px;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-button{
-  transform: scale(1);
-  transition: .1s transform ease;
-}
-button:hover{
-  /* transform: scale(1.1); */
-}
-button:active{
-  transform: scale(.9);
 }
 

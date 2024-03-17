@@ -2,6 +2,7 @@ let originalSrcdoc = `
 <html>
   <head>
     <title>My Comic</title>
+    <style data-id="fonts"></style>
     <style data-id="editor">
       body {
         margin:0px;
@@ -269,11 +270,11 @@ let originalSrcdoc = `
 
         }
       }
-      let sendUpdatedHtmlMessage = function(){
-        console.log("send updated html")
+      let sendUpdatedHtmlMessage = function(typing){
         window.parent.postMessage({
             message: "update html",
-            html: getHtmlString()
+            html: getHtmlString(),
+            typing: typing
         });
       }
 
@@ -378,7 +379,7 @@ let originalSrcdoc = `
         el.addEventListener("input", function(e){
           let thisEl = e.target;
           document.body.classList.remove("addingText");
-          sendUpdatedHtmlMessage();
+          sendUpdatedHtmlMessage(true);
         });
 
         el.addEventListener("keydown", function(e){
@@ -699,11 +700,13 @@ let originalSrcdoc = `
           // let editingEl = document.querySelector('p.editingText');
           editingTextEl.setAttribute('contenteditable', false);
           editingTextEl.classList.remove('editingText');
+          editingTextEl.classList.remove('selected');
 
           if (editingTextEl.innerHTML == ""){
             deleteElement(editingTextEl);
           }
           editingTextEl = null;
+          sendUpdatedHtmlMessage();
         }
       })
 
@@ -727,6 +730,7 @@ let originalSrcdoc = `
         //Clear selected and resizing if you click outside an image
         if (!e.target.classList.contains('sceneEl')){
           removeResizeCursorsOnBody();
+          console.log("WE ARE DESELECTING ELEMENTS HERE");
           deselectElements();
 
         }

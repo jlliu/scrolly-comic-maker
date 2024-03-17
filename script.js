@@ -42,6 +42,7 @@ window.onmessage = function (e) {
     htmlDoc = parser.parseFromString(e.data.html, "text/html");
     updatePreviewTimeline();
     updateSelectedPreviewScene();
+    updateHtmlStates(e.data.html, e.data.typing);
   }
 
   if (e.data.message == "cue change") {
@@ -193,7 +194,7 @@ let setupSceneEl = function (el) {
 };
 
 let clearClasses = function () {
-  arrayFromSelector(".sceneEl").forEach(function (sceneEl) {
+  Array.from(htmlDoc.querySelectorAll(".sceneEl")).forEach(function (sceneEl) {
     sceneEl.classList.remove("selected");
     sceneEl.classList.remove("display");
     sceneEl.classList.remove("visible");
@@ -203,14 +204,16 @@ let clearClasses = function () {
   });
 };
 
-let addElementToScene = function (el) {
-  //Add image to scene container
+let addElementToScene = function (el, type) {
+  //Add image or text to scene container
   clearClasses();
   let sceneContainer = htmlDoc.querySelector("#sceneContainer");
   sceneContainer.appendChild(el);
 
-  console.log("updating ifarme");
   //Change preview iframe frame to the html
+  if (el.tagName == "IMG") {
+    updateHtmlStates(htmlDoc.documentElement.outerHTML);
+  }
   updateIframeAndTimeline();
 };
 
@@ -224,6 +227,7 @@ let updateCues = function (startFrame, endFrame) {
       generateDataCueString(startFrame, endFrame)
     );
     clearClasses();
+    updateHtmlStates(htmlDoc.documentElement.outerHTML);
     updateIframeAndTimeline();
   }
 };
@@ -305,6 +309,7 @@ backgroundColorPicker.addEventListener("change", (e) => {
   let body = htmlDoc.querySelector("body");
   body.style.backgroundColor = currentBackgroundColor;
   clearClasses();
+  updateHtmlStates(htmlDoc.documentElement.outerHTML);
   updateIframeAndTimeline();
 });
 
@@ -487,9 +492,9 @@ let addText = function (xPos, yPos) {
   paragraph.classList.add("selected");
 
   let head = htmlDoc.querySelector("head");
-  let style = htmlDoc.querySelector("style");
+  let fontStyleEl = htmlDoc.querySelector("style[data-id='fonts']");
   let styleCSS = fontDefinitions[currentFont].css;
-  style.innerHTML += styleCSS;
+  fontStyleEl.innerHTML += styleCSS;
   includedFonts.push(currentFont);
   setupSceneEl(paragraph);
   addElementToScene(paragraph);
@@ -512,11 +517,12 @@ fontSelector.onchange = (event) => {
     let thisEl = htmlDoc.querySelector(`.sceneEl[data-id="${thisId}"`);
     thisEl.style.fontFamily = currentFont;
     if (!includedFonts.includes(currentFont)) {
-      let style = htmlDoc.querySelector("style");
+      let fontStyleEl = htmlDoc.querySelector("style[data-id='fonts']");
       let styleCSS = fontDefinitions[currentFont].css;
-      style.innerHTML += styleCSS;
+      fontStyleEl.innerHTML += styleCSS;
       includedFonts.push(currentFont);
     }
+    updateHtmlStates(htmlDoc.documentElement.outerHTML);
     updateIframeAndTimeline();
   }
 };
@@ -528,6 +534,7 @@ fontColorPicker.addEventListener("change", (e) => {
     let thisId = currentElement.dataset.id;
     let thisEl = htmlDoc.querySelector(`.sceneEl[data-id="${thisId}"`);
     thisEl.style.color = currentFontColor;
+    updateHtmlStates(htmlDoc.documentElement.outerHTML);
     updateIframeAndTimeline();
   }
 });
@@ -539,6 +546,7 @@ fontSizePicker.addEventListener("change", (e) => {
     let thisId = currentElement.dataset.id;
     let thisEl = htmlDoc.querySelector(`.sceneEl[data-id="${thisId}"`);
     thisEl.style.fontSize = `${currentFontSize}px`;
+    updateHtmlStates(htmlDoc.documentElement.outerHTML);
     updateIframeAndTimeline();
   }
 });
@@ -549,6 +557,7 @@ textAlignmentPicker.addEventListener("change", (e) => {
     let thisId = currentElement.dataset.id;
     let thisEl = htmlDoc.querySelector(`.sceneEl[data-id="${thisId}"`);
     thisEl.style.textAlign = currentTextAlignment;
+    updateHtmlStates(htmlDoc.documentElement.outerHTML);
     updateIframeAndTimeline();
   }
 });
@@ -569,6 +578,7 @@ frameSubtractButton.addEventListener("click", function () {
 
 let updateIframeAndTimeline = function () {
   previewIframe.srcdoc = htmlDoc.documentElement.outerHTML;
+
   updatePreviewTimeline();
 };
 
@@ -584,6 +594,7 @@ let updateFrames = function () {
   clearClasses();
   let scrollContainer = htmlDoc.querySelector("#scrollContainer");
   scrollContainer.dataset.frameNum = frameNum;
+  updateHtmlStates(htmlDoc.documentElement.outerHTML);
   updateIframeAndTimeline();
 };
 
@@ -609,6 +620,7 @@ sendForwardButton.addEventListener("click", function () {
   let highestZ = getZindexRange().highest;
   if (parseInt(thisEl.style.zIndex) < highestZ) {
     thisEl.style.zIndex = highestZ + 1;
+    updateHtmlStates(htmlDoc.documentElement.outerHTML);
     updateIframeAndTimeline();
   }
 });
@@ -619,6 +631,7 @@ sendBackButton.addEventListener("click", function () {
   let lowestZ = getZindexRange().lowest;
   if (parseInt(thisEl.style.zIndex) > lowestZ) {
     thisEl.style.zIndex = lowestZ - 1;
+    updateHtmlStates(htmlDoc.documentElement.outerHTML);
     updateIframeAndTimeline();
   }
 });
@@ -760,13 +773,12 @@ let updateSelectedPreviewScene = function () {
 updatePreviewTimeline();
 
 let generatePreviewHTML = function () {
+  clearClasses();
   let htmlDocCopy = htmlDoc.cloneNode(true);
   let styleToRemove = htmlDocCopy.querySelector("style[data-id='editor']");
   styleToRemove.remove();
-  let styleEl = document.createElement("style");
-  htmlDocCopy.querySelector("head").appendChild(styleEl);
-  htmlDocCopy.querySelector("style").innerHTML = exportStyle;
-  htmlDocCopy.querySelector("script").innerHTML = exportScript;
+  let styleEl = htmlDocCopy.querySelector("style[data-id='fonts']");
+  styleEl.innerHTML += exportStyle;
   return htmlDocCopy;
 };
 
@@ -876,3 +888,66 @@ previewButton.addEventListener("click", function () {
     previewButton.innerHTML = "Preview";
   }
 });
+
+//Behavior for html states, undo and redo
+
+let htmlStates = [];
+let currentStateVisiting = null;
+let undoButton = document.querySelector("#undo");
+let redoButton = document.querySelector("#redo");
+updateHtmlStates = function (htmlData, typing) {
+  // Don't do this for typing updated html events
+  if (!typing) {
+    // are we currently visiting a state with undo/redo?
+    if (currentStateVisiting == null) {
+      if (htmlStates.length < 10) {
+        htmlStates.push(htmlData);
+      } else if (htmlStates.length == 10) {
+        htmlStates.shift();
+        htmlStates.push(htmlData);
+      }
+    } else {
+      htmlStates.splice(currentStateVisiting + 1);
+      htmlStates.push(htmlData);
+      currentStateVisiting = null;
+      redoButton.disabled = true;
+    }
+    if (htmlStates.length > 1) {
+      undoButton.disabled = false;
+    }
+  }
+};
+
+undoButton.addEventListener("click", function () {
+  redoButton.disabled = false;
+  if (currentStateVisiting == null) {
+    currentStateVisiting = htmlStates.length - 2;
+  } else if (currentStateVisiting > 0) {
+    currentStateVisiting--;
+  }
+  if (currentStateVisiting == 0) {
+    undoButton.disabled = true;
+  } else {
+    undoButton.disabled = false;
+  }
+  let currentHTML = htmlStates[currentStateVisiting];
+  htmlDoc = parser.parseFromString(currentHTML, "text/html");
+  updateIframeAndTimeline();
+});
+
+redoButton.addEventListener("click", function () {
+  undoButton.disabled = false;
+  if (currentStateVisiting < htmlStates.length - 1) {
+    currentStateVisiting++;
+  }
+  if (currentStateVisiting == htmlStates.length - 1) {
+    redoButton.disabled = true;
+  } else {
+    redoButton.disabled = false;
+  }
+  let currentHTML = htmlStates[currentStateVisiting];
+  htmlDoc = parser.parseFromString(currentHTML, "text/html");
+  updateIframeAndTimeline();
+});
+
+updateHtmlStates(htmlDoc.documentElement.outerHTML);
