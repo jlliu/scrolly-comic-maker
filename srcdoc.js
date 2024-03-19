@@ -120,9 +120,9 @@ let originalSrcdoc = `
         -ms-interpolation-mode: nearest-neighbor;   /* IE8+                           */
 
       }
-      img.maxWidth{
+      /* img.maxWidth{
         max-width: calc(100vw - 40px);
-      }
+      } */
       pre.maxWidth{
         max-width: 400px;
       }
@@ -568,7 +568,6 @@ let originalSrcdoc = `
 
 
       let toggleElementFill = function(){
-        console.log("togle fill")
         Array.from(document.querySelectorAll('.sceneEl.selected')).forEach(function(element){
           element.setAttribute('data-originalpos', JSON.stringify({
             x: element.style.left,
@@ -580,10 +579,9 @@ let originalSrcdoc = `
           element.classList.add("fill");
           element.style.left = correctScale(-sceneContainer.getBoundingClientRect().left)+'px';
 
-          console.log(-sceneContainer.getBoundingClientRect().top);
           element.style.width = correctScale(window.innerWidth)+'px';
           if (element.classList.contains("scrollable")){
-            // element.style.height = JSON.parse(element.dataset.originalpos).h;
+            // element.style.top = JSON.parse(element.dataset.ypos);
             element.style.height = "auto";
           } else {
             element.style.top = correctScale(-sceneContainer.getBoundingClientRect().top)+'px';
@@ -875,6 +873,7 @@ let originalSrcdoc = `
 
       setTimeout(function(){
         changeScene(window.scrollY, true);
+        resizeFills();
       },100)
 
       window.onscroll = function (e) {
@@ -893,10 +892,12 @@ let originalSrcdoc = `
       function resizeFills(){
         Array.from(document.querySelectorAll('.sceneEl.fill')).forEach(function(element){
           element.style.left = correctScale(-sceneContainer.getBoundingClientRect().left)+'px';
-          element.style.top = correctScale(-sceneContainer.getBoundingClientRect().top)+'px';
           element.style.width = correctScale(window.innerWidth)+'px';
           if (!element.classList.contains("scrollable")){
             element.style.height = correctScale(window.innerHeight)+'px';
+            element.style.top = correctScale(-sceneContainer.getBoundingClientRect().top)+'px';
+          } else {
+            element.style.top = JSON.parse(element.dataset.originalpos).y;
           }
           });
       }

@@ -67,6 +67,11 @@ let dimensions = {
   let scrollContainer = document.querySelector("#scrollContainer");
   let frameNum = parseInt(scrollContainer.dataset.frameNum);
 
+  let correctScale = function(num){
+    let scale = new WebKitCSSMatrix(window.getComputedStyle(sceneContainer).transform).a;
+    return num / scale;
+  }
+
 
   let setPageHeight = function(){
     let lastFrameBuffer;
@@ -127,7 +132,6 @@ let dimensions = {
 
 
   function changeScene(scrollPos, initialize) {
-    console.log("change scene");
     let cueChanged = currentCueIndex !== Math.floor(scrollPos / interval);
     currentCueIndex = Math.floor(scrollPos / interval);
     adjustScrollables(window.scrollY);
@@ -183,6 +187,7 @@ let dimensions = {
 
   setTimeout(function(){
     changeScene(window.scrollY, true);
+    resizeFills();
   },1)
 
   window.onscroll = function (e) {
@@ -201,10 +206,12 @@ let dimensions = {
   function resizeFills(){
     Array.from(document.querySelectorAll('.sceneEl.fill')).forEach(function(element){
       element.style.left = correctScale(-sceneContainer.getBoundingClientRect().left)+'px';
-      element.style.top = correctScale(-sceneContainer.getBoundingClientRect().top)+'px';
       element.style.width = correctScale(window.innerWidth)+'px';
       if (!element.classList.contains("scrollable")){
         element.style.height = correctScale(window.innerHeight)+'px';
+        element.style.top = correctScale(-sceneContainer.getBoundingClientRect().top)+'px';
+      } else {
+        element.style.top = JSON.parse(element.dataset.originalpos).y;
       }
       });
   }

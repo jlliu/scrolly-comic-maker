@@ -147,13 +147,18 @@ let htmlDoc = parser.parseFromString(originalSrcdoc, "text/html");
 previewIframe.srcdoc = originalSrcdoc;
 
 //TODO: create a wrapper for image that contains the containing div and the selection points
-let addImage = function (image, xPos, yPos) {
+let addImage = function (imgkey, xPos, yPos) {
   let img = new Image();
+  let image = imageLibrary[imgkey].img;
   img.src = image.src;
+  img.setAttribute("data-imgkey", imgkey);
 
   //Resize image so its not fuckin huge
-  if (img.naturalWidth > previewIframe.getBoundingClientRect().width - 40) {
-    img.style.width = `${previewIframe.getBoundingClientRect().width - 40}px`;
+  if (image.naturalWidth > previewIframe.getBoundingClientRect().width - 40) {
+    let maxWidth = canvasWidth - 100;
+    img.style.width = `${maxWidth}px`;
+  } else {
+    img.style.width = image.naturalWidth;
   }
   //Create the default cues
   setupSceneEl(img);
@@ -162,6 +167,8 @@ let addImage = function (image, xPos, yPos) {
   img.style.top = `${yPos}px`;
 
   img.classList.add("selected");
+
+  // img.setAttribute("data-imgkey",)
   behaviorSelector.value = "Fixed";
   placementSelector.value = "Custom";
   // currentImgPreview.src = img.src;
@@ -267,7 +274,7 @@ const img = document.getElementById("img");
 
 const imageCollection = document.querySelector("#image-collection");
 
-let imageLibrary = {};
+let imageLibrary = [];
 let addImageButton = document.querySelector("#addImage");
 
 let openImageButton = document.querySelector("#open-image");
@@ -314,6 +321,37 @@ backgroundColorPicker.addEventListener("change", (e) => {
 });
 
 let acceptedImgTypes = ["png", "jpeg", "jpg", "gif", "webp", "heic"];
+function resizeImg(img) {
+  let max_width = 100;
+  let max_height = 100;
+  var canvas = document.createElement("canvas");
+  var width = img.width;
+  var height = img.height;
+
+  // calculate the width and height, constraining the proportions
+  if (width > height) {
+    if (width > max_width) {
+      //height *= max_width / width;
+      height = Math.round((height *= max_width / width));
+      width = max_width;
+    }
+  } else {
+    if (height > max_height) {
+      //width *= max_height / height;
+      width = Math.round((width *= max_height / height));
+      height = max_height;
+    }
+  }
+  // resize the canvas and draw the image data into it
+  canvas.width = width;
+  canvas.height = height;
+  var ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0, width, height);
+
+  // preview.appendChild(canvas); // do the actual resized preview
+
+  return canvas.toDataURL("image/png"); // get the data from canvas as 70% JPG (can be also PNG, etc.)
+}
 
 function getImg(event) {
   const files = event.target.files; // 0 = get the first file
@@ -328,9 +366,37 @@ function getImg(event) {
     if (!acceptedImgTypes.includes(imgType.toLowerCase())) {
       fileTypeError = true;
     } else {
+      let imgKey = imageLibrary.length;
       let newImg = new Image();
       newImg.src = url;
-      newImg.classList.add("imageLibraryPreview");
+      // newImg.classList.add("imageLibraryPreview");
+      newImg.setAttribute("data-imgkey", imgKey);
+      newImg.onload = function () {
+        let resized = new Image();
+        resized.src = resizeImg(newImg);
+        resized.classList.add("imageLibraryPreview");
+
+        resized.addEventListener("mousedown", function (e) {
+          let draggedImage = new Image();
+          draggedImage.src = resized.src;
+          draggedImage.id = "draggedImage";
+          draggedImage.setAttribute("data-imgkey", imgKey);
+          document.body.appendChild(draggedImage);
+          draggedImage.style.left = `${e.clientX - resized.naturalWidth / 2}px`;
+          draggedImage.style.top = `${e.clientY - resized.naturalHeight / 2}px`;
+          currentlyDraggingLibraryImage = true;
+        });
+
+        imageCollection.appendChild(resized);
+
+        imageLibrary.push({
+          img: newImg,
+          file: file,
+          type: imgType,
+          resizedImg: resized,
+        });
+        // imageLibrary[newImg.src] = { img: newImg, file: file, type: imgType };
+      };
       //Add images onto screen
 
       // newImg.addEventListener("load", function () {
@@ -342,15 +408,6 @@ function getImg(event) {
       //   displacement += 20;
       // });
 
-      newImg.addEventListener("mousedown", function (e) {
-        let draggedImage = new Image();
-        draggedImage.src = newImg.src;
-        draggedImage.id = "draggedImage";
-        document.body.appendChild(draggedImage);
-        draggedImage.style.left = `${e.clientX - newImg.naturalWidth / 2}px`;
-        draggedImage.style.top = `${e.clientY - newImg.naturalHeight / 2}px`;
-        currentlyDraggingLibraryImage = true;
-      });
       // newImg.addEventListener("click", function (e) {
       //   console.log("hi");
       //   addImage(
@@ -360,9 +417,6 @@ function getImg(event) {
       //   );
       //   displacement += 20;
       // });
-
-      imageCollection.appendChild(newImg);
-      imageLibrary[newImg.src] = { img: newImg, file: file, type: imgType };
     }
   });
   // Should we raise an alert?
@@ -423,7 +477,9 @@ document.addEventListener("mouseup", function (e) {
         ) -
         draggedImage.getBoundingClientRect().height / 2,
     };
-    addImage(draggedImage, droppedPos.x, droppedPos.y);
+    let imgkey = draggedImage.dataset.imgkey;
+    // let fullImage = imageLibrary[parseInt(draggedImage.dataset.imgkey)].img;
+    addImage(imgkey, droppedPos.x, droppedPos.y);
     draggedImage.remove();
     currentlyDraggingLibraryImage = false;
     previewIframe.classList.remove("inactive");
@@ -496,6 +552,9 @@ let addText = function (xPos, yPos) {
   let styleCSS = fontDefinitions[currentFont].css;
   fontStyleEl.innerHTML += styleCSS;
   includedFonts.push(currentFont);
+
+  behaviorSelector.value = "Fixed";
+
   setupSceneEl(paragraph);
   addElementToScene(paragraph);
   toggleSettingsDisplay("text");
@@ -671,11 +730,31 @@ let updatePreviewTimeline = function () {
     Array.from(thisScene.querySelectorAll(".sceneEl")).forEach(function (
       sceneEl
     ) {
+      // replace image
+      if (sceneEl.tagName == "IMG") {
+        let resizedImg = imageLibrary[sceneEl.dataset.imgkey].resizedImg;
+        let ratio =
+          imageLibrary[sceneEl.dataset.imgkey].img.naturalWidth /
+          imageLibrary[sceneEl.dataset.imgkey].resizedImg.naturalWidth;
+        let w;
+        if (sceneEl.style.width) {
+          w = sceneEl.style.width;
+        } else {
+          w = imageLibrary[sceneEl.dataset.imgkey].img.naturalWidth;
+        }
+        let newWidth = w * ratio;
+        sceneEl.src = resizedImg.src;
+        sceneEl.width = w;
+      }
       // Show scrollable iamges
       if (sceneEl.classList.contains("scrollable")) {
-        let originalScrollPos = parseInt(sceneEl.dataset.ypos);
+        // A ballpack for where the element is on the page
+        let elementScrollPos =
+          parseInt(sceneEl.dataset.ypos) +
+          parseInt(sceneEl.style.top) -
+          htmlDoc.querySelector(`#sceneContainer`).getBoundingClientRect().top;
         sceneEl.style.transform = "";
-        if (originalScrollPos >= i * 600 && originalScrollPos < (i + 1) * 600) {
+        if (elementScrollPos >= i * 600 && elementScrollPos < (i + 1) * 600) {
           sceneEl.classList.add("visible");
           sceneEl.classList.add("display");
         } else {
@@ -777,6 +856,7 @@ let generatePreviewHTML = function () {
   let htmlDocCopy = htmlDoc.cloneNode(true);
   let styleToRemove = htmlDocCopy.querySelector("style[data-id='editor']");
   styleToRemove.remove();
+  console.log(htmlDocCopy.querySelector("img"));
   let styleEl = htmlDocCopy.querySelector("style[data-id='fonts']");
   styleEl.innerHTML += exportStyle;
   htmlDocCopy.querySelector("script").innerHTML = exportScript;
@@ -805,10 +885,11 @@ exportButton.addEventListener("click", function () {
 
   sceneEls.forEach(function (sceneEl) {
     let id = sceneEl.dataset.id;
+    let imgkey = sceneEl.dataset.imgkey;
     if (sceneEl.tagName == "IMG") {
       //Collect images
-      let type = imageLibrary[sceneEl.src].type;
-      let blob = imageLibrary[sceneEl.src].file;
+      let type = imageLibrary[imgkey].type;
+      let blob = imageLibrary[imgkey].file;
       var images = zip.folder("images");
 
       let fileName = `img${id}.${type}`;
