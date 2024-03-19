@@ -933,6 +933,7 @@ undoButton.addEventListener("click", function () {
   }
   let currentHTML = htmlStates[currentStateVisiting];
   htmlDoc = parser.parseFromString(currentHTML, "text/html");
+  currentBackgroundColor = htmlDoc.querySelector("body").style.backgroundColor;
   updateIframeAndTimeline();
 });
 
@@ -948,6 +949,7 @@ redoButton.addEventListener("click", function () {
   }
   let currentHTML = htmlStates[currentStateVisiting];
   htmlDoc = parser.parseFromString(currentHTML, "text/html");
+  currentBackgroundColor = htmlDoc.querySelector("body").style.backgroundColor;
   updateIframeAndTimeline();
 });
 
