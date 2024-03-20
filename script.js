@@ -321,7 +321,7 @@ backgroundColorPicker.addEventListener("change", (e) => {
   updateIframeAndTimeline();
 });
 
-let acceptedImgTypes = ["png", "jpeg", "jpg", "gif", "webp", "heic"];
+let acceptedImgTypes = ["png", "jpeg", "jpg", "gif", "webp", "heic", "svg"];
 function resizeImg(img) {
   let max_width = 100;
   let max_height = 100;
@@ -353,6 +353,7 @@ function resizeImg(img) {
 
   return canvas.toDataURL("image/png"); // get the data from canvas as 70% JPG (can be also PNG, etc.)
 }
+let numImagesInLibrary = 0;
 
 function getImg(event) {
   const files = event.target.files; // 0 = get the first file
@@ -365,14 +366,15 @@ function getImg(event) {
       imgType = "svg";
     }
     if (!acceptedImgTypes.includes(imgType.toLowerCase())) {
+      console.log(imgType);
       fileTypeError = true;
     } else {
-      let imgKey = imageLibrary.length;
       let newImg = new Image();
       newImg.src = url;
-      // newImg.classList.add("imageLibraryPreview");
-      newImg.setAttribute("data-imgkey", imgKey);
+
       newImg.onload = function () {
+        let imgKey = imageLibrary.length;
+        newImg.setAttribute("data-imgkey", imgKey);
         let resized = new Image();
         resized.src = resizeImg(newImg);
         resized.classList.add("imageLibraryPreview");
