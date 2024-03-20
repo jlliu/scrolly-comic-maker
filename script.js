@@ -10,6 +10,8 @@ let numObjects = 0;
 
 let currentCue = 0;
 
+let frameNum = 15;
+
 let currentElement = null;
 let startCueInput = document.querySelector("#startCue");
 let endCueInput = document.querySelector("#endCue");
@@ -447,6 +449,18 @@ document.addEventListener("click", function (e) {
   if (!e.target.closest("#rightPanel") && !e.target.closest("#preview")) {
     previewIframe.contentWindow.postMessage({ message: "deselect" });
   }
+  // clear context menu
+  // clear context menu if we're clicking on  a different one too...
+  if (!e.target.closest(".contextMenu")) {
+    Array.from(document.querySelectorAll(".contextMenu")).forEach(function (
+      el
+    ) {
+      el.style.display = "none";
+      contextFrame.classList.remove("selected");
+      contextFrame.classList.remove("pixel-corners-4-selected");
+      contextFrame = null;
+    });
+  }
 });
 
 document.addEventListener("mouseup", function (e) {
@@ -792,11 +806,121 @@ let updatePreviewTimeline = function () {
       let cue = parseInt(e.target.dataset.cue);
       previewIframe.contentWindow.scrollTo(0, frameNumToHeight(cue - 1));
     });
+    sceneWrapper.addEventListener("contextmenu", function (e) {
+      displayContextMenu(e);
+    });
     sceneWrapper.appendChild(frameNumDiv);
     sceneWrapper.appendChild(thisScene);
 
     sceneWrapperContainer.appendChild(sceneWrapper);
   }
+};
+
+let contextMenu = document.querySelector(".contextMenu");
+let contextFrame = null;
+let displayContextMenu = function (e) {
+  e.preventDefault();
+  if (contextFrame) {
+    contextFrame.classList.remove("selected");
+    contextFrame.classList.remove("pixel-corners-4-selected");
+  }
+
+  contextFrame = e.target.closest(".sceneWrapper");
+
+  contextMenu.style.display = "flex";
+  contextMenu.style.left = `${
+    contextFrame.getBoundingClientRect().left +
+    contextFrame.getBoundingClientRect().width +
+    2
+  }px`;
+  contextMenu.style.top = `${
+    contextFrame.getBoundingClientRect().top -
+    contextMenu.getBoundingClientRect().height / 2
+  }px`;
+  // contextFrame.click();
+
+  contextFrame.classList.add("selected");
+  contextFrame.classList.add("pixel-corners-4-selected");
+
+  return false;
+};
+
+let deleteFrame = function (e) {
+  //delete this frame and then shift all the cues after by one
+  let cueToDelete = parseInt(contextFrame.dataset.cue);
+  let sceneEls = Array.from(htmlDoc.querySelectorAll(".sceneEl"));
+  sceneEls.forEach(function (thisEl) {
+    let dataCues = JSON.parse(thisEl.dataset.cues);
+    let spliceAt = null;
+    let startFrame = dataCues[0];
+    let endFrame = dataCues[dataCues.length - 1];
+
+    if (cueToDelete >= startFrame && cueToDelete <= endFrame) {
+      if (startFrame == endFrame) {
+        thisEl.remove();
+      } else {
+        thisEl.setAttribute(
+          "data-cues",
+          generateDataCueString(startFrame, endFrame - 1)
+        );
+      }
+    } else if (cueToDelete < startFrame) {
+      thisEl.setAttribute(
+        "data-cues",
+        generateDataCueString(startFrame - 1, endFrame - 1)
+      );
+    }
+
+    // if (startFrame == endFrame) {
+    //   thisEl.remove();
+    // } else {
+    //   dataCues.forEach(function (cue, i) {
+    //     if (cue == cueToDelete) {
+    //       spliceAt = i;
+    //     } else if (cue > cueToDelete) {
+    //       dataCues[i] = cue - 1;
+    //     }
+    //   });
+    //   if (spliceAt) {
+    //     dataCues.splice(spliceAt, 1);
+    //   }
+    //   thisEl.setAttribute("data-cues", `[${dataCues.toString()}]`);
+    // }
+  });
+  updateIframeAndTimeline();
+  frameNum--;
+  let scrollContainer = htmlDoc.querySelector("#scrollContainer");
+  scrollContainer.dataset.frameNum = frameNum;
+  contextMenu.style.display = "none";
+};
+
+let duplicateFrame = function (e) {
+  //delete this frame and then shift all the cues after by one
+  let cueToDuplicate = parseInt(contextFrame.dataset.cue);
+  let sceneEls = Array.from(htmlDoc.querySelectorAll(".sceneEl"));
+  sceneEls.forEach(function (thisEl) {
+    let dataCues = JSON.parse(thisEl.dataset.cues);
+    let spliceAt = null;
+    let cueToAdd = null;
+    let startFrame = dataCues[0];
+    let endFrame = dataCues[dataCues.length - 1];
+    if (cueToDuplicate >= startFrame && cueToDuplicate <= endFrame) {
+      thisEl.setAttribute(
+        "data-cues",
+        generateDataCueString(startFrame, endFrame + 1)
+      );
+    } else if (cueToDuplicate < startFrame) {
+      thisEl.setAttribute(
+        "data-cues",
+        generateDataCueString(startFrame + 1, endFrame + 1)
+      );
+    }
+  });
+  updateIframeAndTimeline();
+  frameNum++;
+  let scrollContainer = htmlDoc.querySelector("#scrollContainer");
+  scrollContainer.dataset.frameNum = frameNum;
+  contextMenu.style.display = "none";
 };
 
 let updateSelectedPreviewScene = function () {
@@ -856,11 +980,25 @@ let generatePreviewHTML = function () {
   let htmlDocCopy = htmlDoc.cloneNode(true);
   let styleToRemove = htmlDocCopy.querySelector("style[data-id='editor']");
   styleToRemove.remove();
-  console.log(htmlDocCopy.querySelector("img"));
   let styleEl = htmlDocCopy.querySelector("style[data-id='fonts']");
   styleEl.innerHTML += exportStyle;
   htmlDocCopy.querySelector("script").innerHTML = exportScript;
   return htmlDocCopy;
+};
+
+//Start over
+let startOver = function () {
+  backgroundColorPicker.value = "#FFFFFF";
+  htmlStates = [];
+  currentStateVisiting = null;
+  undoButton.disabled = true;
+  redoButton.disabled = true;
+  frameNum = initialFrameNum;
+  currentScrollPos = 0;
+  htmlDoc = parser.parseFromString(originalSrcdoc, "text/html");
+  currentBackgroundColor = htmlDoc.querySelector("body").style.backgroundColor;
+  updateIframeAndTimeline();
+  updateHtmlStates(htmlDoc.documentElement.outerHTML);
 };
 
 // JS Zip stuff

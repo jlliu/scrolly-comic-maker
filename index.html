@@ -87,6 +87,7 @@
 						<label for="Background Color">Background color</label>
 						<input type="color" id="backgroundColor" name="Background Color" value="#FFFFFF" />
 						<p>later: gutter width... dimensions</p>
+						<button onclick="startOver()">Start Over</button>
 
 					</div>
 
@@ -179,6 +180,10 @@
 		<iframe id="fullPreview" srcdoc=""></iframe>
 	</div>
 
+	<div class="contextMenuSceneEl contextMenu">
+		<button id="contextMenu-deleteFrame" onclick="deleteFrame()">Delete</button>
+		<button id="contextMenu-duplicate" onclick="duplicateFrame()">Duplicate</button>
+	</div>
 </body>
 <script src="global.js"></script>
 <script src="srcdoc.js"></script>

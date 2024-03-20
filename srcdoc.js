@@ -772,6 +772,7 @@ let originalSrcdoc = `
       }
       sceneEls.forEach(function (sceneEl) {
         let cues = JSON.parse(sceneEl.dataset.cues);
+        console.log(cues[0]);
         cues.forEach(function (cue) {
           // Push element to cues if it's within the frame limit
           if (cue <= frameNum){

@@ -253,6 +253,19 @@ iframe.inactive{
 
 }
 
+.contextMenu{
+  border:2px solid black;
+  position:fixed;
+  display:none;
+  z-index:1;
+  flex-direction:column;
+  width:140px;
+}
+
+.contextMenu button{
+  padding:8px;
+}
+
 .timeline{
   position:relative;
 }

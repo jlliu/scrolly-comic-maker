@@ -3,7 +3,7 @@ let scrollInterval = 600;
 let canvasWidth = 800;
 let canvasHeight = 600;
 
-let frameNum = 15;
+const initialFrameNum = 15;
 let frameNumToHeight = function (frameNum) {
   return (frameNum + 1) * 600;
 };
