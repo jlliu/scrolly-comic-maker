@@ -456,9 +456,11 @@ document.addEventListener("click", function (e) {
       el
     ) {
       el.style.display = "none";
-      contextFrame.classList.remove("selected");
-      contextFrame.classList.remove("pixel-corners-4-selected");
-      contextFrame = null;
+      if (contextFrame) {
+        contextFrame.classList.remove("selected");
+        contextFrame.classList.remove("pixel-corners-4-selected");
+        contextFrame = null;
+      }
     });
   }
 });
@@ -857,6 +859,7 @@ let deleteFrame = function (e) {
 
     if (cueToDelete >= startFrame && cueToDelete <= endFrame) {
       if (startFrame == endFrame) {
+        console.log("removing element");
         thisEl.remove();
       } else {
         thisEl.setAttribute(
@@ -887,10 +890,12 @@ let deleteFrame = function (e) {
     //   thisEl.setAttribute("data-cues", `[${dataCues.toString()}]`);
     // }
   });
-  updateIframeAndTimeline();
+
   frameNum--;
   let scrollContainer = htmlDoc.querySelector("#scrollContainer");
   scrollContainer.dataset.frameNum = frameNum;
+  updateHtmlStates(htmlDoc.documentElement.outerHTML);
+  updateIframeAndTimeline();
   contextMenu.style.display = "none";
 };
 
@@ -916,10 +921,12 @@ let duplicateFrame = function (e) {
       );
     }
   });
-  updateIframeAndTimeline();
+
   frameNum++;
   let scrollContainer = htmlDoc.querySelector("#scrollContainer");
   scrollContainer.dataset.frameNum = frameNum;
+  updateHtmlStates(htmlDoc.documentElement.outerHTML);
+  updateIframeAndTimeline();
   contextMenu.style.display = "none";
 };
 
