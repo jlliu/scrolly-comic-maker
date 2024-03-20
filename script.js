@@ -10,12 +10,11 @@ let numObjects = 0;
 
 let currentCue = 0;
 
-let frameNum = 15;
+// let frameNum = 15;
 
 let currentElement = null;
 let startCueInput = document.querySelector("#startCue");
 let endCueInput = document.querySelector("#endCue");
-endCueInput.setAttribute("max", frameNum);
 
 let currentIdInput = document.querySelector("#currentId");
 
@@ -189,8 +188,8 @@ let setupSceneEl = function (el) {
   let startFrame = currentCue;
   let endFrame = currentCue + initialFrameDuration;
 
-  if (currentCue + initialFrameDuration > frameNum) {
-    endFrame = frameNum;
+  if (currentCue + initialFrameDuration > frameNum()) {
+    endFrame = frameNum();
   }
 
   el.setAttribute("data-cues", generateDataCueString(startFrame, endFrame));
@@ -640,14 +639,14 @@ textAlignmentPicker.addEventListener("change", (e) => {
 // MANAGING FRAMES
 
 frameAddButton.addEventListener("click", function () {
-  frameNum++;
-  updateFrames();
+  // frameNum++;
+  updateFrames("add");
 });
 
 frameSubtractButton.addEventListener("click", function () {
-  if (frameNum > 1) {
-    frameNum--;
-    updateFrames();
+  if (frameNum() > 1) {
+    // frameNum--;
+    updateFrames("subtract");
   }
 });
 
@@ -657,18 +656,25 @@ let updateIframeAndTimeline = function () {
   updatePreviewTimeline();
 };
 
-let updateFrames = function () {
+let updateFrames = function (type) {
   //update inputs
-  startCueInput.setAttribute("max", frameNum);
-  endCueInput.setAttribute("max", frameNum);
-  if (endCueInput.value > frameNum) {
-    // endCueInput.value =
-    //TODO!!! UPDATE EVERYTHING AND FIX BUGS WHEN WE CHANGE FRAME NUM!!!
+  let newMax;
+  if (type == "add") {
+    newMax = frameNum() + 1;
+  } else if (type == "subtract") {
+    console.log("subtracting");
+    newMax = frameNum() + -1;
   }
+  startCueInput.setAttribute("max", newMax);
+  endCueInput.setAttribute("max", newMax);
+  // if (endCueInput.value > frameNum) {
+  //   // endCueInput.value =
+  //   //TODO!!! UPDATE EVERYTHING AND FIX BUGS WHEN WE CHANGE FRAME NUM!!!
+  // }
   //Update iframe
   clearClasses();
   let scrollContainer = htmlDoc.querySelector("#scrollContainer");
-  scrollContainer.dataset.frameNum = frameNum;
+  scrollContainer.dataset.frameNum = newMax;
   updateHtmlStates(htmlDoc.documentElement.outerHTML);
   updateIframeAndTimeline();
 };
@@ -730,16 +736,22 @@ endCueInput.addEventListener("change", (e) => {
   //Double check it's valid
   let startFrame = parseInt(startCueInput.value);
   let endFrame = parseInt(endCueInput.value);
-  if (endFrame >= startFrame && endFrame < frameNum) {
+  if (endFrame >= startFrame && endFrame < frameNum()) {
     updateCues(startFrame, endFrame);
   }
 });
 
 //PREVIEW TIMELINE
 
+let frameNum = function () {
+  return parseInt(htmlDoc.querySelector(`#scrollContainer`).dataset.frameNum);
+};
+
+endCueInput.setAttribute("max", frameNum());
+
 let updatePreviewTimeline = function () {
   sceneWrapperContainer.innerHTML = "";
-  for (var i = 0; i <= frameNum; i++) {
+  for (var i = 0; i <= frameNum(); i++) {
     let thisScene = htmlDoc.querySelector(`#sceneContainer`).cloneNode(true);
     thisScene.id = `#sceneContainer${i}`;
     thisScene.classList.add("sceneContainer");
@@ -873,29 +885,8 @@ let deleteFrame = function (e) {
         generateDataCueString(startFrame - 1, endFrame - 1)
       );
     }
-
-    // if (startFrame == endFrame) {
-    //   thisEl.remove();
-    // } else {
-    //   dataCues.forEach(function (cue, i) {
-    //     if (cue == cueToDelete) {
-    //       spliceAt = i;
-    //     } else if (cue > cueToDelete) {
-    //       dataCues[i] = cue - 1;
-    //     }
-    //   });
-    //   if (spliceAt) {
-    //     dataCues.splice(spliceAt, 1);
-    //   }
-    //   thisEl.setAttribute("data-cues", `[${dataCues.toString()}]`);
-    // }
   });
-
-  frameNum--;
-  let scrollContainer = htmlDoc.querySelector("#scrollContainer");
-  scrollContainer.dataset.frameNum = frameNum;
-  updateHtmlStates(htmlDoc.documentElement.outerHTML);
-  updateIframeAndTimeline();
+  updateFrames("subtract");
   contextMenu.style.display = "none";
 };
 
@@ -921,12 +912,7 @@ let duplicateFrame = function (e) {
       );
     }
   });
-
-  frameNum++;
-  let scrollContainer = htmlDoc.querySelector("#scrollContainer");
-  scrollContainer.dataset.frameNum = frameNum;
-  updateHtmlStates(htmlDoc.documentElement.outerHTML);
-  updateIframeAndTimeline();
+  updateFrames("add");
   contextMenu.style.display = "none";
 };
 
