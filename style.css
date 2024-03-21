@@ -12,6 +12,10 @@
   font-family: "Bad Comic";
   src: url("fonts/BadComic-Regular.ttf") format("truetype");
 }
+@font-face {
+  font-family: "Fantastic Boogaloo";
+  src: url("fonts/FantasticBoogaloo.ttf") format("truetype");
+}
 
 body {
   display:flex;
@@ -21,6 +25,7 @@ body {
   height:100vh;
   overscroll-behavior: none;
   overflow:hidden;
+  font-family: Fantastic Boogaloo;
 }
 
 header{

@@ -988,7 +988,6 @@ let startOver = function () {
   currentStateVisiting = null;
   undoButton.disabled = true;
   redoButton.disabled = true;
-  frameNum = initialFrameNum;
   currentScrollPos = 0;
   htmlDoc = parser.parseFromString(originalSrcdoc, "text/html");
   currentBackgroundColor = htmlDoc.querySelector("body").style.backgroundColor;
