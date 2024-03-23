@@ -26,8 +26,8 @@ let originalSrcdoc = `
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 800px;
-        height: 600px;
+        width: 1000px;
+        height: 625px;
         border: 2px dotted rgba(0, 0, 0, 0.333);
         pointer-events:none;
         /* z-index:0; */
@@ -176,8 +176,8 @@ let originalSrcdoc = `
   <script>
 
     let dimensions = {
-      w: 800,
-      h: 600
+      w: 1000,
+      h: 625
     }
       let currentlyDragging = false;
       let draggingEl = null;
@@ -209,15 +209,17 @@ let originalSrcdoc = `
       let scrollContainer = document.querySelector("#scrollContainer");
       let frameNum = parseInt(scrollContainer.dataset.frameNum);
 
+      let interval = 600;
+
 
       let setPageHeight = function(){
         let lastFrameBuffer;
-        if (window.innerHeight < 600){
+        if (window.innerHeight < interval){
           lastFrameBuffer = 0;
-        } else if (window.innerHeight >= 600) {
-          lastFrameBuffer =  window.innerHeight-600+100;
+        } else if (window.innerHeight >= interval) {
+          lastFrameBuffer =  window.innerHeight-interval+100;
         }
-        scrollContainer.style.height = ((frameNum+1)*600+lastFrameBuffer)+'px';
+        scrollContainer.style.height = ((frameNum+1)*interval+lastFrameBuffer)+'px';
 
       }
 
@@ -287,7 +289,7 @@ let originalSrcdoc = `
       }
 
 
-      let cornerMargin = 20;
+      let cornerMargin = 10;
 
 
 
@@ -522,7 +524,7 @@ let originalSrcdoc = `
       let toggleElementScroll = function(){
         Array.from(document.querySelectorAll('.sceneEl.selected')).forEach(function(element){
             element.classList.add("scrollable");
-            element.setAttribute('data-ypos',scrollPos);
+            element.setAttribute('data-ypos',window.scrollY);
             element.setAttribute('data-cues', generateDataCueString(0,frameNum));
             if (element.classList.contains("fill")){
               // element.style.height = JSON.parse(element.dataset.originalpos).h;
@@ -617,11 +619,11 @@ let originalSrcdoc = `
         let fill = draggingEl.classList.contains("fill");
         if (scrollable && fill){
           draggingEl.style.transform = "none";
-          draggingEl.setAttribute('data-ypos',scrollPos);
+          draggingEl.setAttribute('data-ypos',window.scrollY);
           draggingEl.style.top = correctScale(e.clientY - sceneContainer.getBoundingClientRect().top - clickedPos.y)+"px";
         } else if (scrollable && !fill){
           draggingEl.style.transform = "none";
-          draggingEl.setAttribute('data-ypos',scrollPos);
+          draggingEl.setAttribute('data-ypos',window.scrollY);
           draggingEl.style.left = correctScale(e.clientX - sceneContainer.getBoundingClientRect().left -  clickedPos.x) +"px" ;
           draggingEl.style.top = correctScale(e.clientY - sceneContainer.getBoundingClientRect().top - clickedPos.y)+"px";
 
@@ -772,7 +774,6 @@ let originalSrcdoc = `
       }
       sceneEls.forEach(function (sceneEl) {
         let cues = JSON.parse(sceneEl.dataset.cues);
-        console.log(cues[0]);
         cues.forEach(function (cue) {
           // Push element to cues if it's within the frame limit
           if (cue <= frameNum){
@@ -788,7 +789,7 @@ let originalSrcdoc = `
 
       let currentCueIndex = 0;
       let scrollPos = 0;
-      let interval = 600;
+
 
       let currentSceneEls = [];
       let prevSceneEls = [];
@@ -797,7 +798,7 @@ let originalSrcdoc = `
         window.parent.postMessage({
               message: "cue change",
               cueCount: currentCueIndex,
-              scrollPos: scrollPos
+              scrollPos: window.scrollY
         });
       }
 
@@ -820,7 +821,7 @@ let originalSrcdoc = `
         let cueChanged = currentCueIndex !== Math.floor(scrollPos / interval);
         currentCueIndex = Math.floor(scrollPos / interval);
         adjustScrollables(window.scrollY);
-        sendCueChangeMessage();
+
 
         if (cueChanged){
           sendCueChangeMessage();
@@ -851,6 +852,9 @@ let originalSrcdoc = `
           prevSceneEls = currentSceneEls;
           currentSceneEls = cuesToEls[currentCueIndex];
 
+
+
+
           prevSceneEls.forEach(function (sceneEl) {
             //if this prev scene El is not in this current one, remove it
             if (currentSceneEls.indexOf(sceneEl) == -1) {
@@ -868,6 +872,8 @@ let originalSrcdoc = `
               sceneEl.classList.add("visible");
             }, 5);
           });
+        } else {
+          sendCueChangeMessage();
         }
 
       }
@@ -878,7 +884,7 @@ let originalSrcdoc = `
       },100)
 
       window.onscroll = function (e) {
-        scrollPos = window.scrollY;
+        // scrollPos = window.scrollY;
         changeScene(window.scrollY);
 
       };

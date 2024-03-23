@@ -1,7 +1,7 @@
 let scrollInterval = 600;
 
-let canvasWidth = 800;
-let canvasHeight = 600;
+let canvasWidth = 1000;
+let canvasHeight = 625;
 
 const initialFrameNum = 15;
 let frameNumToHeight = function (frameNum) {
@@ -55,8 +55,8 @@ let fontDefinitions = {
 let exportScript = `
 
 let dimensions = {
-  w: 800,
-  h: 600
+  w: 1000,
+  h: 625
 }
 
   let sceneEls =  document.querySelectorAll(".sceneEl");
@@ -261,8 +261,8 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 800px;
-  height: 600px;
+  width: 1000px;
+  height: 625px;
   pointer-events:none;
 }
 #scrollContainer{

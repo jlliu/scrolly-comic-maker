@@ -235,6 +235,7 @@ let updateCues = function (startFrame, endFrame) {
       generateDataCueString(startFrame, endFrame)
     );
     clearClasses();
+    console.log("calling update cues update html");
     updateHtmlStates(htmlDoc.documentElement.outerHTML);
     updateIframeAndTimeline();
   }
@@ -249,6 +250,8 @@ document.addEventListener("keydown", function (e) {
 // KEEP IFRAME SCROLLED TO RECENT POSITION
 
 previewIframe.onload = function () {
+  console.log("scrolled to: " + currentScrollPos);
+
   this.contentWindow.scrollTo(0, currentScrollPos);
   previewIframe.contentWindow.postMessage({ message: "scroll to" });
 };
@@ -654,7 +657,6 @@ frameSubtractButton.addEventListener("click", function () {
 
 let updateIframeAndTimeline = function () {
   previewIframe.srcdoc = htmlDoc.documentElement.outerHTML;
-
   updatePreviewTimeline();
 };
 
@@ -664,7 +666,6 @@ let updateFrames = function (type) {
   if (type == "add") {
     newMax = frameNum() + 1;
   } else if (type == "subtract") {
-    console.log("subtracting");
     newMax = frameNum() + -1;
   }
   startCueInput.setAttribute("max", newMax);
@@ -738,7 +739,7 @@ endCueInput.addEventListener("change", (e) => {
   //Double check it's valid
   let startFrame = parseInt(startCueInput.value);
   let endFrame = parseInt(endCueInput.value);
-  if (endFrame >= startFrame && endFrame < frameNum()) {
+  if (endFrame >= startFrame && endFrame <= frameNum()) {
     updateCues(startFrame, endFrame);
   }
 });
@@ -784,7 +785,10 @@ let updatePreviewTimeline = function () {
           parseInt(sceneEl.style.top) -
           htmlDoc.querySelector(`#sceneContainer`).getBoundingClientRect().top;
         sceneEl.style.transform = "";
-        if (elementScrollPos >= i * 600 && elementScrollPos < (i + 1) * 600) {
+        if (
+          elementScrollPos >= i * scrollInterval &&
+          elementScrollPos < (i + 1) * scrollInterval
+        ) {
           sceneEl.classList.add("visible");
           sceneEl.classList.add("display");
         } else {
@@ -969,6 +973,7 @@ let updateSelectedPreviewScene = function () {
 };
 
 updatePreviewTimeline();
+updateSelectedPreviewScene();
 
 let generatePreviewHTML = function () {
   clearClasses();
