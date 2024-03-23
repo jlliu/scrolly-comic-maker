@@ -16,7 +16,7 @@
 		<h1>Scrolly comic maker</h1>
 		<div class="buttons">
 			<button id="previewButton" class="pixel-corners-4">Preview</button>
-			<button id="exportButton" class="pixel-corners-4">Export</button>
+			<button id="exportButton" class="pixel-corners-4 primary">Export</button>
 		</div>
 
 	</header>
@@ -32,15 +32,14 @@
 
 		</div>
 		<div id="imageLibraryPanel" class="pixel-corners-12">
-			<h2>library</h2>
-				<button id="add-image" onclick="document.getElementById('image-upload').click()">Upload New</button>
+			<div class="headerWithClose"><h2 class="header">Images</h2><button id="closeLibrary">&#215;</button></div>
+				<button id="add-image" onclick="document.getElementById('image-upload').click()" class="pixel-corners-4 fullWidth primary">+ Upload</button>
 				<input id="image-upload" type="file" multiple="multiple" />
 
-				<p><i>Drag images onto the canvas</i></i></p>
+				<!-- <p><i>Drag images onto the canvas</i></i></p> -->
 			<div id="image-collection" >
-
 			</div>
-			<button id="closeLibrary">Close</button>
+
 		</div>
 		<div id="previewContainer">
 			<div id="iframeContainer" class="pixel-corners-12">
@@ -80,31 +79,41 @@
 					<div class="settingsGroup canvasSettings">
 
 
-						<h2>Canvas settings</h2>
+						<h2 class="header">Canvas settings</h2>
 
-						<input type="text" id="title" name="title" required minlength="1" maxlength="200" value="Untitled Comic"  /> <br><br>
+						<div class="settingSection">
+							<label for="title">Title</label>
+							<div class="pixel-corners--wrapper-4">
+								<input type="text" id="title" name="title" required minlength="1" maxlength="200" value="Untitled Comic" class="pixel-corners-4"  />
+							</div>
+						</div>
 
-						<label for="Background Color">Background color</label>
-						<input type="color" id="backgroundColor" name="Background Color" value="#FFFFFF" />
-						<p>later: gutter width... dimensions</p>
-						<button onclick="startOver()">Start Over</button>
+
+						<div class="settingSection">
+						<label for="Background Color">Background</label>
+						<input type="color" id="backgroundColor" name="Background Color" value="#FFFFFF" class="pixel-corners-4" />
+						</div>
+						<!-- <p>later: gutter width... dimensions</p> -->
+						<button onclick="startOver()" class="pixel-corners-4 fullWidth">Start Over</button>
 
 					</div>
 
 
 					<div class="settingsGroup elementSettings">
 
-						<h2 class="showForImgEl">Image settings</h2>
-						<h2 class="showForTextEl">Text settings</h2>
+						<h2 class="showForImgEl header">Image settings</h2>
+						<h2 class="showForTextEl header">Text settings</h2>
 
+						<div class="settingSection">
 						<label for="Behavior">Display</label>
 						<select name="Behavior" id="behaviorSelector">
 							<option value="Fixed">Fixed</option>
 							<option value="Scroll">Scroll</option>
 						</select>
+						</div>
 
 
-						<div class="showForImgEl">
+						<div class="showForImgEl settingSection">
 							<label for="Placement">Fill page</label>
 							<select name="Placement" id="placementSelector">
 								<option value="Custom">Off</option>
@@ -120,33 +129,35 @@
 
 						<!-- <img class="showForImgEl" src="" id="currentImgPreview" />
 						<p class="showForImgEl showForTextEl" >Id: <i id="currentId">0</i></p> -->
-						<br>
+
+						<div class="settingSection">
 						<label for="start cue">Start frame:</label>
 						<input type="number" id="startCue" name="Start cue" min="0"  max="1000" />
-							<br>
+
 						<label for="end Cue">End frame:</label>
 						<input type="number" id="endCue" name="Start cue" min="0" max="1000" />
-
+						</div>
 
 						<!-- Font related settings -->
-						<div class="showForTextEl">
-
-
+						<div class="showForTextEl settingSection">
 							<label for="fonts">Choose a font:</label>
-
 							<select name="cars" id="fontSelector">
 								<option value="Comic Neue">Comic Neue</option>
 								<option value="Rainy Hearts">Rainy Hearts</option>
 								<option value="Bad Comic">Bad Comic</option>
 							</select>
-							<br>
+						</div>
+						<div class="showForTextEl settingSection">
 							<label for="Font Color">Text color</label>
 							<input type="color" id="fontColor" name="Font Color" value="#000000" />
-							<br>
+
+						</div>
+						<div class="showForTextEl settingSection">
 							<label for="end Cue">Font size</label>
 							<input type="number" id="fontSize" name="Font size" min="8" max="400" value="24" />
+						</div>
 
-							<br>
+						<div class="showForTextEl settingSection">
 							<label for="text alignment">Text alignment</label>
 
 							<select name="text alignment" id="textAlignment">
@@ -154,12 +165,13 @@
 								<option value="center">Center</option>
 								<option value="right">Right</option>
 							</select>
-
+						</div>
+						<button class="showForTextEl showForImgEl" id="sendForward" >Bring to front</button><br>
+						<button class="showForTextEl showForImgEl" id="sendBack" >Send to back</button><br>
+						<button class="showForTextEl showForImgEl" id="delete">Delete</button>
 						</div>
 
-						<button id="sendForward" >Bring to front</button><br>
-						<button id="sendBack" >Send to back</button><br>
-						<button id="delete">Delete</button>
+
 					</div>
 
 

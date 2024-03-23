@@ -147,6 +147,11 @@ let htmlDoc = parser.parseFromString(originalSrcdoc, "text/html");
 
 previewIframe.srcdoc = originalSrcdoc;
 
+let createSceneElWrapper = function () {
+  let div = document.createElement("DIV");
+  return div;
+};
+
 //TODO: create a wrapper for image that contains the containing div and the selection points
 let addImage = function (imgkey, xPos, yPos) {
   let img = new Image();
@@ -162,6 +167,9 @@ let addImage = function (imgkey, xPos, yPos) {
     img.style.width = image.naturalWidth;
   }
   //Create the default cues
+  // let div = createSceneElWrapper();
+  // div.appendChild(img);
+  // setupSceneEl(div);
   setupSceneEl(img);
 
   img.style.left = `${xPos}px`;

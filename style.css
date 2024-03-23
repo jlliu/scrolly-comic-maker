@@ -32,7 +32,29 @@ body {
   background-color: #f9feff;
   background-image: radial-gradient(#53c0ff 1.05px, #f9feff 1.05px);
   background-size: 21px 21px;
+  font-size:16px;
 }
+
+button{
+  cursor:pointer;
+  font-family: Fantastic Boogaloo;
+  transform: scale(1);
+  transition: .1s transform ease;
+  background:white;
+  padding:12px 20px;
+
+}
+button.primary{
+  background: rgb(218, 255, 54);
+}
+button:hover{
+  /* transform: scale(1.1); */
+}
+button:active{
+  transform: scale(.9);
+}
+
+
 
 header{
   /* background:yellow; */
@@ -53,6 +75,27 @@ header .buttons{
 header .buttons button{
   padding:12px 20px;
   margin-left: 8px;
+}
+.headerWithClose{
+  display:flex;
+}
+.headerWithClose h2 {
+  flex-grow:1;
+}
+.headerWithClose button{
+  position:relative;
+  top:-8px;
+  right:-8px;
+  width:40px;
+  height:40px;
+  padding:0px;
+  border:none;
+  background:none;
+  font-size:40px;
+
+}
+h2.header{
+  margin-top: 8px;
 }
 #export{
   margin: 8px;
@@ -86,8 +129,8 @@ header .buttons button{
 #leftPanel button {
   width:54px;
   height:54px;
-
   background:none;
+  padding:0px;
   /* background-size:cover;
   border:none;
   image-rendering: pixelated; */
@@ -105,6 +148,21 @@ button#undo{
   /* background-image: url('img/undo-icon.png'); */
 }
 
+input[type='text']{
+  font-size:16px;
+font-family: "Comic Neue";
+padding:8px;
+}
+input[type='color']{
+ /* width:100%; */
+ width:48px;
+ height:48px;
+}
+
+.fullWidth{
+  width:100%;
+}
+
 #imageLibraryPanel{
   padding:20px;
   flex-basis: 200px;
@@ -116,7 +174,7 @@ button#undo{
   border-radius:16px;
   display:none;
   flex-direction:column;
-  height: calc(100vh - 162px);
+  height: calc(100vh - 139px);
 }
 #imageLibraryPanel.show{
   display:flex;
@@ -143,7 +201,7 @@ button#undo{
 #rightPanel {
   padding:20px;
   overflow:scroll;
-  height: calc(100vh - 162px);
+  height: calc(100vh - 136px);
 }
 
 #iframeContainer{
@@ -194,13 +252,25 @@ button#undo{
   display:none;
 }
 #image-collection{
-  border:1px solid black;
+  display: grid;
+  grid-template-columns: 100px 100px;
+  grid-gap: 8px;
+  grid-template-rows: 100px 100px;
+  justify-items: center;
+  align-items:center;
   min-height:200px;
-  margin:20px 0px;
+  margin-top:24px;
   overflow: scroll;
 }
+#image-collection img{
+  /* width:100%;
+  height:100%;
+  max-width:100%;
+  max-height:100%; */
+  background:grey;
+}
 .imageLibraryPreview{
-  width:70px;
+
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
@@ -274,6 +344,7 @@ iframe.inactive{
 #frame-add, #frame-subtract{
   width:40px;
   height:100%;
+  padding:0px;
 }
 
 #scenePreviewContainer {
@@ -470,18 +541,17 @@ pre.sceneEl.maxWidth{
   pointer-events:all;
 }
 
-button{
-  cursor:pointer;
-  font-family: Fantastic Boogaloo;
-  transform: scale(1);
-  transition: .1s transform ease;
-  background: rgb(218, 255, 54);
+
+
+.settingSection {
+  display:block;
+  margin:16px 0px;
 }
-button:hover{
-  /* transform: scale(1.1); */
-}
-button:active{
-  transform: scale(.9);
+label{
+  display:block;
+  font-weight:bold;
+  font-family: "Comic Neue";
+  margin-bottom:8px;
 }
 
 
@@ -800,8 +870,8 @@ button:active{
   border: 2px solid transparent;
 }
 .pixel-corners--wrapper-4 {
-  width: fit-content;
-  height: fit-content;
+  /* width: fit-content;
+  height: fit-content; */
 }
 .pixel-corners--wrapper-4 .pixel-corners-4 {
   display: block;
