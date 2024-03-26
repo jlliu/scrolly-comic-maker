@@ -30,6 +30,7 @@ let originalSrcdoc = `
         height: 625px;
         border: 2px dotted rgba(0, 0, 0, 0.333);
         pointer-events:none;
+        border-radius:8px;
         /* z-index:0; */
       }
       #scrollContainer{

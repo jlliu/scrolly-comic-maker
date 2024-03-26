@@ -4,13 +4,7 @@ var parser = new DOMParser();
 
 let numObjects = 0;
 
-// let cueCount = document.querySelector("#cueCount");
-
-// let currentCue = parseInt(cueCount.innerHTML);
-
 let currentCue = 0;
-
-// let frameNum = 15;
 
 let currentElement = null;
 let startCueInput = document.querySelector("#startCue");
@@ -31,8 +25,6 @@ let settingsPanel = document.querySelector("#settings");
 let sendForwardButton = document.querySelector("#sendForward");
 let sendBackButton = document.querySelector("#sendBack");
 
-// let timelineContainer = document.querySelector("#timelineContainer");
-
 let scenePreviewContainer = document.querySelector("#scenePreviewContainer");
 let sceneWrapperContainer = document.querySelector("#sceneWrapperContainer");
 
@@ -48,16 +40,8 @@ window.onmessage = function (e) {
 
   if (e.data.message == "cue change") {
     currentCue = e.data.cueCount;
-    // cueCount.innerHTML = currentCue;
     currentScrollPos = e.data.scrollPos;
     updateSelectedPreviewScene();
-
-    // let slider = document.querySelector("#timelineSlider");
-
-    // slider.style.left = `${
-    //   (currentScrollPos / (frameNum * 600)) *
-    //   timelineContainer.getBoundingClientRect().width
-    // }px`;
   }
 
   if (e.data.message == "selected el") {
@@ -463,7 +447,7 @@ document.addEventListener("click", function (e) {
   }
   // clear context menu
   // clear context menu if we're clicking on  a different one too...
-  if (!e.target.closest(".contextMenu")) {
+  if (!e.target.closest(".contextMenu") && !e.target.closest("#fontSelector")) {
     Array.from(document.querySelectorAll(".contextMenu")).forEach(function (
       el
     ) {
@@ -596,8 +580,38 @@ addTextButton.addEventListener("click", function () {
 
 // TEXT SETTINGS
 
-fontSelector.onchange = (event) => {
-  currentFont = event.target.value;
+let fontMenu = document.querySelector("#fontMenu");
+
+let fontOptions = document.querySelectorAll("#fontSelector option");
+Array.from(fontOptions).forEach(function (option) {
+  let font = option.value;
+  console.log(font);
+  let button = document.createElement("button");
+  button.innerHTML = font;
+  button.style.fontFamily = font;
+  button.onclick = function (e) {
+    let chosenFont = e.target.innerHTML;
+    fontSelector.value = chosenFont;
+    fontSelector.style.fontFamily = chosenFont;
+    changeFont(chosenFont);
+  };
+  fontMenu.querySelector(".optionsWrapper").appendChild(button);
+});
+
+fontSelector.addEventListener("mousedown", (event) => {
+  event.preventDefault();
+});
+
+fontSelector.addEventListener("click", (event) => {
+  console.log("clicked on font selector");
+  if (fontMenu.style.display == "block") {
+    fontMenu.style.display = "none";
+  } else {
+    fontMenu.style.display = "block";
+  }
+});
+
+let changeFont = function (currentFont) {
   // change selected element if exists
   if (currentElement.tagName == "PRE") {
     let thisId = currentElement.dataset.id;
@@ -613,6 +627,24 @@ fontSelector.onchange = (event) => {
     updateIframeAndTimeline();
   }
 };
+// fontSelector.onchange = (event) => {
+//   console.log("changed");
+//   currentFont = event.target.value;
+//   // change selected element if exists
+//   if (currentElement.tagName == "PRE") {
+//     let thisId = currentElement.dataset.id;
+//     let thisEl = htmlDoc.querySelector(`.sceneEl[data-id="${thisId}"`);
+//     thisEl.style.fontFamily = currentFont;
+//     if (!includedFonts.includes(currentFont)) {
+//       let fontStyleEl = htmlDoc.querySelector("style[data-id='fonts']");
+//       let styleCSS = fontDefinitions[currentFont].css;
+//       fontStyleEl.innerHTML += styleCSS;
+//       includedFonts.push(currentFont);
+//     }
+//     updateHtmlStates(htmlDoc.documentElement.outerHTML);
+//     updateIframeAndTimeline();
+//   }
+// };
 
 fontColorPicker.addEventListener("change", (e) => {
   currentFontColor = e.target.value;
@@ -666,6 +698,7 @@ frameSubtractButton.addEventListener("click", function () {
 let updateIframeAndTimeline = function () {
   previewIframe.srcdoc = htmlDoc.documentElement.outerHTML;
   updatePreviewTimeline();
+  updateSelectedPreviewScene();
 };
 
 let updateFrames = function (type) {
@@ -835,7 +868,7 @@ let updatePreviewTimeline = function () {
       previewIframe.contentWindow.scrollTo(0, frameNumToHeight(cue - 1));
     });
     sceneWrapper.addEventListener("contextmenu", function (e) {
-      displayContextMenu(e);
+      displayContextMenuSceneEl(e);
     });
     sceneWrapper.appendChild(frameNumDiv);
     sceneWrapper.appendChild(thisScene);
@@ -844,9 +877,9 @@ let updatePreviewTimeline = function () {
   }
 };
 
-let contextMenu = document.querySelector(".contextMenu");
+let contextMenuSceneEl = document.querySelector(".contextMenuSceneEl");
 let contextFrame = null;
-let displayContextMenu = function (e) {
+let displayContextMenuSceneEl = function (e) {
   e.preventDefault();
   if (contextFrame) {
     contextFrame.classList.remove("selected");
@@ -855,15 +888,15 @@ let displayContextMenu = function (e) {
 
   contextFrame = e.target.closest(".sceneWrapper");
 
-  contextMenu.style.display = "flex";
-  contextMenu.style.left = `${
+  contextMenuSceneEl.style.display = "flex";
+  contextMenuSceneEl.style.left = `${
     contextFrame.getBoundingClientRect().left +
     contextFrame.getBoundingClientRect().width +
     2
   }px`;
-  contextMenu.style.top = `${
+  contextMenuSceneEl.style.top = `${
     contextFrame.getBoundingClientRect().top -
-    contextMenu.getBoundingClientRect().height / 2
+    contextMenuSceneEl.getBoundingClientRect().height / 2
   }px`;
   // contextFrame.click();
 
@@ -901,7 +934,7 @@ let deleteFrame = function (e) {
     }
   });
   updateFrames("subtract");
-  contextMenu.style.display = "none";
+  contextMenuSceneEl.style.display = "none";
 };
 
 let duplicateFrame = function (e) {
@@ -927,7 +960,7 @@ let duplicateFrame = function (e) {
     }
   });
   updateFrames("add");
-  contextMenu.style.display = "none";
+  contextMenuSceneEl.style.display = "none";
 };
 
 let updateSelectedPreviewScene = function () {
@@ -1105,7 +1138,7 @@ let fullPreviewOpen = false;
 previewButton.addEventListener("click", function () {
   fullPreviewOpen = !fullPreviewOpen;
   if (fullPreviewOpen) {
-    fullPreviewContainer.style.display = "flex";
+    fullPreviewContainer.style.display = "block";
     editor.style.display = "none";
     previewButton.innerHTML = "Back to Editing";
     fullPreviewIframe.srcdoc = generatePreviewHTML().documentElement.outerHTML;

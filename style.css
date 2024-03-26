@@ -1,3 +1,13 @@
+:root {
+  --primaryblue: #00a1ff;
+  --secondaryblue: #b2e3ff;
+  --lightblue: #e0f4ff;
+  --transparentwhite: rgba(255,255,255,.8);
+  --lime:  #daff36;
+  --greydots: radial-gradient(#949494 1px, #ffffff 1px);
+  --limedots: radial-gradient(  #daff36 1px, #ffffff 1px);
+}
+
 @font-face {
   font-family: "Comic Neue";
   src: url("fonts/ComicNeue-Bold.ttf") format("truetype");
@@ -29,9 +39,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  background-color: #f9feff;
-  background-image: radial-gradient(#53c0ff 1.05px, #f9feff 1.05px);
-  background-size: 21px 21px;
+  background-color: #d7d7d7;
+  background-image: var(--greydots);
+  background-size: 4px 4px;
+
   font-size:16px;
 }
 
@@ -40,8 +51,14 @@ button{
   font-family: Fantastic Boogaloo;
   transform: scale(1);
   transition: .1s transform ease;
+  /* background: var(--lightblue); */
   background:white;
+  background-image: var(--limedots);
+  background-size: 4px 4px;
   padding:12px 20px;
+  font-family:"Comic Neue";
+  font-size:15px;
+
 
 }
 button.primary{
@@ -60,7 +77,8 @@ header{
   /* background:yellow; */
   padding-left:20px;
   padding-right:20px;
-  height:60px;
+  flex-basis:60px;
+  flex-shrink:0;
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -131,6 +149,7 @@ h2.header{
   height:54px;
   background:none;
   padding:0px;
+
   /* background-size:cover;
   border:none;
   image-rendering: pixelated; */
@@ -148,15 +167,31 @@ button#undo{
   /* background-image: url('img/undo-icon.png'); */
 }
 
-input[type='text']{
+input.pixel-corners-4, select.pixel-corners-4{
+  width:100%;
+  padding:8px;
   font-size:16px;
-font-family: "Comic Neue";
-padding:8px;
+  font-family: "Comic Neue";
+  height: 40px;
+  box-sizing: border-box;
+
+}
+select.pixel-corners-4{
+appearance:none;
+background: white url(img/chevron-down-solid.svg) 94% / 6% no-repeat;
+}
+
+
+input[type='text']{
+  /* font-size:16px; */
+/* font-family: "Comic Neue"; */
+/* padding:8px; */
 }
 input[type='color']{
- /* width:100%; */
- width:48px;
- height:48px;
+ width:100%;
+ /* width:48px; */
+ height:40px;
+ padding:2px;
 }
 
 .fullWidth{
@@ -170,7 +205,7 @@ input[type='color']{
   flex-shrink: 0;
   margin:20px 0px;
   margin-left:20px;
-  background: rgba(255,255,255,.6);
+  background: var(--transparentwhite);
   border-radius:16px;
   display:none;
   flex-direction:column;
@@ -196,7 +231,7 @@ input[type='color']{
   flex-basis: 240px;
   flex-grow: 0;
   flex-shrink: 0;
-      background: rgba(255,255,255,.6);
+      background: var(--transparentwhite)
 }
 #rightPanel {
   padding:20px;
@@ -241,7 +276,7 @@ input[type='color']{
 
 .fullPreviewContainer{
   display:none;
-  height:100%;
+  flex-grow: 1;
 }
 #fullPreview{
   border: none;
@@ -358,15 +393,39 @@ iframe.inactive{
 
 .contextMenu{
   border:2px solid black;
-  position:fixed;
+
   display:none;
   z-index:1;
   flex-direction:column;
   width:140px;
 }
 
+.contextMenuSceneEl{
+  position:fixed !important;
+}
+.contextMenu.fontMenu{
+  position: absolute;
+  top: 66px;
+  width: calc( 100% - 4px);
+}
+.fontMenu .optionsWrapper{
+  max-height: 300px;
+  overflow:scroll;
+}
+
 .contextMenu button{
-  padding:8px;
+  padding:8px 16px;
+  border:none;
+  text-align:left;
+  width:100%;
+
+}
+.contextMenu button:hover{
+  background: var(--lime);
+
+}
+.contextMenu button:active{
+  transform:none;
 }
 
 .timeline{
@@ -385,10 +444,10 @@ iframe.inactive{
 
 .timeline-gradient-l{
 
-  background: rgb(255,255,255);
-  background: -moz-linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
-  background: -webkit-linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
-  background: linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+  background: white;
+  background: -moz-linear-gradient(90deg, white 0%, rgba(255,255,255,0) 100%);
+  background: -webkit-linear-gradient(90deg, white 0%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(90deg, white 0%, rgba(255,255,255,0) 100%);
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#ffffff",endColorstr="#ffffff",GradientType=1); */
   pointer-events:none;
 }
@@ -397,10 +456,10 @@ iframe.inactive{
   right:0px;
   background:yellow;
   opacity:0;
-  background: rgb(255,255,255);
-background: -moz-linear-gradient(-90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
-background: -webkit-linear-gradient(-90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
-background: linear-gradient(-90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+  background: white;
+background: -moz-linear-gradient(-90deg, white 0%, rgba(255,255,255,0) 100%);
+background: -webkit-linear-gradient(-90deg, white 0%, rgba(255,255,255,0) 100%);
+background: linear-gradient(-90deg, white 0%, rgba(255,255,255,0) 100%);
 filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#ffffff",endColorstr="#ffffff",GradientType=1);
 }
 
@@ -435,7 +494,8 @@ filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#ffffff",endCo
   padding: 4px 0px;
   font-size: 14px;
   border-bottom: 1px solid black;
-  background: rgba(255,255,255,.6);
+  background: var(--transparentwhite);
+  font-family: "Comic Neue";
 }
 .sceneWrapper.selected{
 
@@ -546,12 +606,24 @@ pre.sceneEl.maxWidth{
 .settingSection {
   display:block;
   margin:16px 0px;
+  position:relative;
+
+}
+.settingSection.columns-2{
+  display:flex;
+  gap:16px;
+}
+.settingSection.columns-2 *{
+ flex-grow:1;
 }
 label{
   display:block;
   font-weight:bold;
   font-family: "Comic Neue";
   margin-bottom:8px;
+  font-size:14px;
+  /* opacity: .5; */
+  font-weight:normal;
 }
 
 

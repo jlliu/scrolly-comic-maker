@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>title</title>
+	<title>Scrolly Comic Maker</title>
 
 
 	<link rel="stylesheet" href="style.css">
@@ -130,45 +130,69 @@
 						<!-- <img class="showForImgEl" src="" id="currentImgPreview" />
 						<p class="showForImgEl showForTextEl" >Id: <i id="currentId">0</i></p> -->
 
-						<div class="settingSection">
-						<label for="start cue">Start frame:</label>
-						<input type="number" id="startCue" name="Start cue" min="0"  max="1000" />
+						<div class="settingSection columns-2">
+						<div>
+							<label for="start cue">Start frame:</label>
+							<div class="pixel-corners--wrapper-4">
+								<input class="pixel-corners-4" type="number" id="startCue" name="Start cue" min="0"  max="1000" />
+							</div>
+						</div>
+						<div>
+							<label for="end Cue">End frame:</label>
+							<div class="pixel-corners--wrapper-4">
+								<input class="pixel-corners-4" type="number" id="endCue" name="Start cue" min="0" max="1000" />
+							</div>
+						</div>
 
-						<label for="end Cue">End frame:</label>
-						<input type="number" id="endCue" name="Start cue" min="0" max="1000" />
 						</div>
 
 						<!-- Font related settings -->
 						<div class="showForTextEl settingSection">
-							<label for="fonts">Choose a font:</label>
-							<select name="cars" id="fontSelector">
-								<option value="Comic Neue">Comic Neue</option>
-								<option value="Rainy Hearts">Rainy Hearts</option>
-								<option value="Bad Comic">Bad Comic</option>
-							</select>
-						</div>
-						<div class="showForTextEl settingSection">
-							<label for="Font Color">Text color</label>
-							<input type="color" id="fontColor" name="Font Color" value="#000000" />
+							<label for="fonts">Font</label>
+							<!-- <div class="fontSelector-custom pixel-corners-4">
+								Comic Neue
+							</div> -->
+							<div class="pixel-corners--wrapper-4">
+								<select name="cars" id="fontSelector" class="pixel-corners-4">
+									<option value="Comic Neue">Comic Neue</option>
+									<option value="Rainy Hearts">Rainy Hearts</option>
+									<option value="Bad Comic">Bad Comic</option>
+								</select>
+							</div>
+							<div id="fontMenu" class="fontMenu contextMenu pixel-corners-4">
+								<div class="optionsWrapper">
 
+								</div>
+							</div>
 						</div>
-						<div class="showForTextEl settingSection">
-							<label for="end Cue">Font size</label>
-							<input type="number" id="fontSize" name="Font size" min="8" max="400" value="24" />
+
+						<div class="showForTextEl">
+							<div class="settingSection columns-2">
+								<div>
+									<label for="end Cue">Font size</label>
+									<div class="pixel-corners--wrapper-4">
+										<input class="pixel-corners-4" type="number" id="fontSize" name="Font size" min="8" max="400" value="24" />
+									</div>
+								</div>
+								<div>
+								<label for="Font Color">Text color</label>
+								<input class="pixel-corners-4" type="color" id="fontColor" name="Font Color" value="#000000" />
+								</div>
+							</div>
 						</div>
+
 
 						<div class="showForTextEl settingSection">
 							<label for="text alignment">Text alignment</label>
-
 							<select name="text alignment" id="textAlignment">
 								<option value="left">Left</option>
 								<option value="center">Center</option>
 								<option value="right">Right</option>
 							</select>
 						</div>
-						<button class="showForTextEl showForImgEl" id="sendForward" >Bring to front</button><br>
-						<button class="showForTextEl showForImgEl" id="sendBack" >Send to back</button><br>
-						<button class="showForTextEl showForImgEl" id="delete">Delete</button>
+						<button id="sendForward" class="pixel-corners-4 fullWidth">Bring to front</button>
+						<button id="sendBack" class="pixel-corners-4 fullWidth">Send to back</button>
+						<button id="delete" class="pixel-corners-4 fullWidth">Delete</button>
 						</div>
 
 
@@ -192,9 +216,9 @@
 		<iframe id="fullPreview" srcdoc=""></iframe>
 	</div>
 
-	<div class="contextMenuSceneEl contextMenu">
-		<button id="contextMenu-deleteFrame" onclick="deleteFrame()">Delete</button>
-		<button id="contextMenu-duplicate" onclick="duplicateFrame()">Duplicate</button>
+	<div class="contextMenuSceneEl contextMenu pixel-corners-4">
+		<button id="contextMenu-deleteFrame" onclick="deleteFrame()">Delete frame</button>
+		<button id="contextMenu-duplicate" onclick="duplicateFrame()">Duplicate frame</button>
 	</div>
 </body>
 <script src="global.js"></script>
